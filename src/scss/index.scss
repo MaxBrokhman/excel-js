@@ -20,4 +20,14 @@ body {
 .excel {
   position: relative;
   color: #888;
+  height: 100%;
+  max-width: 100%;
+  font-size: 0.8rem;
+}
+
+.visually-hidden {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
 }

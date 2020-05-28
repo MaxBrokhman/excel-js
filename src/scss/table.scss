@@ -2,5 +2,51 @@
 @import 'mixins'; 
 
 .excel-table {
-  
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: $header-height + $toolbar-height + $formula-height;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  .table {
+    border-collapse: collapse;
+  }
+  .row {
+    display: flex;
+    min-height: 20px;
+    height: $row-height;
+  }
+  .table-header-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid $border-color;
+    background: #f8f9fa;
+    height: 100%;
+    border-top: none;
+  }
+  .row-info {
+    min-width: $info-cell-width;
+  }
+  .row-data {
+    min-width: 40px;
+    width: $cell-width;
+    border-left: none;;
+  }
+  .cell {
+    min-width: 40px;
+    padding: 5px;
+    width: $cell-width;
+    height: 100%;
+    border: 1px solid #e2e3e3;
+    border-top: none;
+    border-left: none;
+    color: #111;
+    white-space: nowrap;
+    &.selected {
+      border: none;
+      z-index: 2;
+      outline: 2px solid #3c74ff;
+    }
+  }
 }
