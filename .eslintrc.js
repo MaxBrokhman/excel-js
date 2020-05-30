@@ -21,5 +21,7 @@ module.exports = {
     'linebreak-style': ['error', 'windows'],
     'require-jsdoc': 'off',
     'semi': 0,
+    'operator-linebreak': 'off',
+    'no-explicit-any': 'off',
   },
 };
