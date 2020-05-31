@@ -17,7 +17,8 @@ export class Excel {
     const root = document.createElement('div')
     root.classList.add(this.rootClassName)
     this.components.forEach((component) => {
-      root.insertAdjacentHTML('beforeend', component.toHTML())
+      component.toHTML()
+      root.appendChild(component.root)
     })
     return root
   }
@@ -25,5 +26,6 @@ export class Excel {
   render(): void {
     this.components.forEach((component) => component.init())
     this.element.append(this.getRoot())
+    console.log(this.element)
   }
 }

@@ -9,10 +9,25 @@ import {Toolbar} from './components/toolbar/Toolbar'
 
 const excel = new Excel('#app', {
   components: [
-    new Header(document.createElement('header')),
-    new Toolbar(document.createElement('section')),
-    new Formula(document.createElement('section')),
-    new Table(document.createElement('section')),
+    new Header({
+      root: document.createElement('header'),
+      className: 'excel-header',
+    }),
+    new Toolbar({
+      root: document.createElement('section'),
+      className: 'excel-toolbar',
+    }),
+    new Formula({
+      root: document.createElement('section'),
+      className: 'excel-formula',
+    }),
+    new Table({
+      root: document.createElement('section'),
+      options: {
+        listeners: ['mousedown'],
+      },
+      className: 'excel-table',
+    }),
   ],
 })
 

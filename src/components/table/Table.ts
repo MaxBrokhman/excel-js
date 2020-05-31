@@ -5,15 +5,40 @@ type TOptions = {
   listeners?: Array<string>,
 }
 
+interface TEvent {
+  target: {
+    dataset: {
+      resize?: string,
+    }
+  }
+}
+
+type TProps = {
+  root: HTMLElement,
+  options: TOptions,
+  className: string,
+}
+
 export class Table extends ExcelComponent {
-  private readonly className = 'excel-table'
-  constructor(root: HTMLElement, options: TOptions = {}) {
-    super(root, options.listeners || [])
-    this.root = root
-    this.root.className = this.className
+  constructor({
+    root,
+    options = {},
+    className,
+  }: TProps) {
+    super({
+      root,
+      listeners: options.listeners,
+      className,
+    })
   }
   toHTML(): string {
     this.root.innerHTML = createTable(15)
-    return this.root.outerHTML
+    return this.root.innerHTML
+  }
+
+  onMousedown(event: TEvent): void {
+    if (event.target.dataset && event.target.dataset.resize) {
+      console.log('mousedown')
+    }
   }
 }

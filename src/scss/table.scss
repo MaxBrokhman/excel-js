@@ -24,6 +24,7 @@
     background: #f8f9fa;
     height: 100%;
     border-top: none;
+    position: relative;
   }
   .row-info {
     min-width: $info-cell-width;
@@ -47,6 +48,35 @@
       border: none;
       z-index: 2;
       outline: 2px solid #3c74ff;
+    }
+  }
+  .col-resize, .row-resize {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: $primary-color;
+    opacity: 0;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .col-resize {
+    top: 0;
+    width: 4px;
+
+    &:hover {
+      cursor: col-resize;
+    }
+  }
+
+  .row-resize {
+    left: 0;
+    height: 4px;
+
+    &:hover {
+      cursor: row-resize;
     }
   }
 }

@@ -5,15 +5,21 @@ const createCell = () => `
   <td class="cell"></td>
 `
 
-const createRow = (headerCell: number, colsCount: number): string => `
+const createRow = (headerContent: number, colsCount: number): string => `
   <tr class="row">
-    <td class="row-info table-header-cell">${headerCell}</td>
+    <td class="row-info table-header-cell">
+      <div class="row-resize" data-resize="row"></div>
+      ${headerContent}
+    </td>
     ${new Array(colsCount).fill(createCell()).join('')}
   </tr>
 `
 
 const createHeaderCell = (headerCell: string): string => `
-  <th class="row-data table-header-cell">${headerCell}</th>
+  <th class="row-data table-header-cell">
+    ${headerCell}
+    <div class="col-resize" data-resize="col"></div>
+  </th>
 `
 
 export const createTable = (rowsCount: number): string => {

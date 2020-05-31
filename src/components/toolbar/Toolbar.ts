@@ -1,10 +1,8 @@
 import {ExcelComponent} from '../../core/ExcelComponent';
 
 export class Toolbar extends ExcelComponent {
-  private readonly className = 'excel-toolbar'
   toHTML(): string {
-    return `
-    <section class="excel-toolbar">
+    this.root.innerHTML = `
       <h2 class="visually-hidden">Excel table toolbar</h2>
       <button class="button" title="align text left">
         <span class="material-icons">format_align_left</span>
@@ -24,7 +22,7 @@ export class Toolbar extends ExcelComponent {
       <button class="button" title="make text underlined">
         <span class="material-icons">format_underlined</span>
       </button>
-    </section>
     `
+    return this.root.innerHTML
   }
 }
