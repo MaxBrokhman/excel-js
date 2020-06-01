@@ -17,7 +17,10 @@ const createRow = (headerContent: number, colsCount: number): string => {
   }
   return `
     <tr class="row">
-      <td class="row-info table-header-cell">
+      <td 
+        class="row-info table-header-cell"
+        data-index="${headerContent}"
+      >
         <div class="row-resize" data-resize="row"></div>
         ${headerContent}
       </td>

@@ -22,6 +22,13 @@ type TProps = {
   className: string,
 }
 
+const documentMouseUpHandler = () => {
+  document.onmousemove = null
+  document.onmouseup = null
+}
+
+const getDeltaInPixels = (start: number, end: number) => `${start - end}px`
+
 export class Table extends ExcelComponent {
   constructor({
     root,
@@ -40,24 +47,29 @@ export class Table extends ExcelComponent {
   }
 
   onMousedown(evt: IEvent): void {
-    if (evt.target.dataset && evt.target.dataset.resize) {
+    if (evt.target.dataset && evt.target.dataset.resize === 'col') {
       const parent = evt.target.closest('[data-type="resizable"]')
       const coords = parent.getBoundingClientRect()
       const columnCells = this.root.querySelectorAll(
           `td[data-col="${parent.dataset['col']}"]`
       )
       document.onmousemove = (moveEvt: IEvent) => {
-        const delta = moveEvt.pageX - coords.right
-        const newWidth = `${delta}px`
-        parent.style.width = newWidth
+        const delta = getDeltaInPixels(moveEvt.pageX, coords.right)
+        parent.style.width = delta
         columnCells.forEach((cell: HTMLElement) => {
-          cell.style.width = newWidth
+          cell.style.width = delta
         })
       }
-      document.onmouseup = () => {
-        document.onmousemove = null
-        document.onmouseup = null
+      document.onmouseup = documentMouseUpHandler
+    }
+
+    if (evt.target.dataset && evt.target.dataset.resize === 'row') {
+      const row = evt.target.closest('tr')
+      const coords = row.getBoundingClientRect()
+      document.onmousemove = (moveEvt: IEvent) => {
+        row.style.height = getDeltaInPixels(moveEvt.pageY, coords.bottom)
       }
+      document.onmouseup = documentMouseUpHandler
     }
   }
 }
