@@ -21,11 +21,9 @@ export class DomListener {
     this.listeners.forEach((listener) => {
       const method = getListenerName(listener)
       if (get(this, method)) {
-        console.log(listener)
         const currentListener = get(this, method).bind(this)
         this.listenersMapper[method] = currentListener
         this.root.addEventListener(listener, currentListener)
-        console.log(this.root, listener, currentListener, this.listenersMapper)
       }
     })
   }

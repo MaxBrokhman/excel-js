@@ -1,22 +1,37 @@
 const MIN_CHAR_CODE = 65
 const MAX_CHAR_CODE = 90
 
-const createCell = () => `
-  <td class="cell"></td>
+const getCharByCode = (code: number) => String.fromCharCode(code)
+
+const createCell = (col: string, headerContent: number) => `
+  <td class="cell" data-index="${headerContent}" data-col="${col}"></td>
 `
 
-const createRow = (headerContent: number, colsCount: number): string => `
-  <tr class="row">
-    <td class="row-info table-header-cell">
-      <div class="row-resize" data-resize="row"></div>
-      ${headerContent}
-    </td>
-    ${new Array(colsCount).fill(createCell()).join('')}
-  </tr>
-`
+const createRow = (headerContent: number, colsCount: number): string => {
+  const cells = []
+  for (let i = 0; i < colsCount; i++) {
+    cells.push(createCell(
+        getCharByCode(MIN_CHAR_CODE + i),
+        headerContent
+    ))
+  }
+  return `
+    <tr class="row">
+      <td class="row-info table-header-cell">
+        <div class="row-resize" data-resize="row"></div>
+        ${headerContent}
+      </td>
+      ${cells.join('')}
+    </tr>
+  `
+}
 
 const createHeaderCell = (headerCell: string): string => `
-  <th class="row-data table-header-cell">
+  <th 
+    class="row-data table-header-cell" 
+    data-type="resizable" 
+    data-col="${headerCell}"
+  >
     ${headerCell}
     <div class="col-resize" data-resize="col"></div>
   </th>
@@ -29,7 +44,7 @@ export const createTable = (rowsCount: number): string => {
   for (let i = 0; i <= colsCount; i++) {
     headerCells.push(
         createHeaderCell(
-            String.fromCharCode(MIN_CHAR_CODE + i)
+            String.fromCharCode(MIN_CHAR_CODE + i),
         )
     )
   }
