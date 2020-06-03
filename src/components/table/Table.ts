@@ -1,33 +1,25 @@
-import {ExcelComponent} from '../../core/ExcelComponent';
-import {createTable} from './templateCreator';
-
-type TOptions = {
-  listeners?: Array<string>,
-}
-
-interface IEvent extends MouseEvent {
-  target: ITarget,
-}
-
-interface ITarget extends EventTarget {
-  closest: (selector: string) => HTMLElement,
-  dataset: {
-    resize?: string,
-  }
-}
-
-type TProps = {
-  root: HTMLElement,
-  options: TOptions,
-  className: string,
-}
-
-const documentMouseUpHandler = () => {
-  document.onmousemove = null
-  document.onmouseup = null
-}
-
-const getDeltaInPixels = (start: number, end: number) => `${start - end}px`
+import {ExcelComponent} from '../../core/ExcelComponent'
+import {createTable} from './templateCreator'
+import {IEvent, TProps} from './types'
+import {
+  getDelta,
+  mouseUpCleaner,
+  moveHandler,
+  setStyles,
+  updateBasePropWithDelta,
+} from './utils'
+import {
+  COL_RESIZE_PARENT_SELECTOR,
+  ROW_RESIZE_PARENT_SELECTOR,
+  colMoveStyles,
+  rowMoveStyles,
+  COL_RESIZER_MOVE_PROP,
+  ROW_RESIZER_MOVE_PROP,
+  colCleanedStyles,
+  rowCleanedStyles,
+  COL_PARENT_PROP_DYNAMIC,
+  ROW_PARENT_PROP_DYNAMIC,
+} from './config'
 
 export class Table extends ExcelComponent {
   constructor({
@@ -41,35 +33,55 @@ export class Table extends ExcelComponent {
       className,
     })
   }
+
   toHTML(): string {
     this.root.innerHTML = createTable(15)
     return this.root.innerHTML
   }
 
   onMousedown(evt: IEvent): void {
-    if (evt.target.dataset && evt.target.dataset.resize === 'col') {
-      const parent = evt.target.closest('[data-type="resizable"]')
-      const coords = parent.getBoundingClientRect()
-      const columnCells = this.root.querySelectorAll(
-          `td[data-col="${parent.dataset['col']}"]`
-      )
+    if (evt.target.dataset && evt.target.dataset.resize) {
+      const resizer = evt.target
+      const resizeType = resizer.dataset.resize
+      let delta: number
+      const isColResize = resizeType === 'col'
+      const parent = isColResize
+        ? resizer.closest(COL_RESIZE_PARENT_SELECTOR)
+        : resizer.closest(ROW_RESIZE_PARENT_SELECTOR)
+      const coordsProvider = isColResize
+        ? resizer
+        : parent
+      const coords = coordsProvider.getBoundingClientRect()
+      const stylesOnMove = isColResize
+        ? colMoveStyles
+        : rowMoveStyles
+      setStyles(resizer, stylesOnMove)
       document.onmousemove = (moveEvt: IEvent) => {
-        const delta = getDeltaInPixels(moveEvt.pageX, coords.right)
-        parent.style.width = delta
-        columnCells.forEach((cell: HTMLElement) => {
-          cell.style.width = delta
-        })
+        delta = isColResize
+          ? getDelta(moveEvt.pageX, coords[COL_RESIZER_MOVE_PROP])
+          : getDelta(moveEvt.pageY, coords[ROW_RESIZER_MOVE_PROP])
+        isColResize
+        ? moveHandler(resizer, COL_RESIZER_MOVE_PROP, delta)
+        : moveHandler(resizer, ROW_RESIZER_MOVE_PROP, delta)
       }
-      document.onmouseup = documentMouseUpHandler
-    }
-
-    if (evt.target.dataset && evt.target.dataset.resize === 'row') {
-      const row = evt.target.closest('tr')
-      const coords = row.getBoundingClientRect()
-      document.onmousemove = (moveEvt: IEvent) => {
-        row.style.height = getDeltaInPixels(moveEvt.pageY, coords.bottom)
+      document.onmouseup = () => {
+        mouseUpCleaner()
+        const stylesToClean = isColResize
+          ? colCleanedStyles
+          : rowCleanedStyles
+        setStyles(resizer, stylesToClean)
+        const parentPropToUpdate = isColResize
+          ? COL_PARENT_PROP_DYNAMIC
+          : ROW_PARENT_PROP_DYNAMIC
+        updateBasePropWithDelta(parent, parentPropToUpdate, delta)
+        isColResize && this.root.querySelectorAll(
+            `td[data-col="${parent.dataset['col']}"]`
+        ).forEach((cell: HTMLElement) => updateBasePropWithDelta(
+            cell,
+            COL_PARENT_PROP_DYNAMIC,
+            delta
+        ))
       }
-      document.onmouseup = documentMouseUpHandler
     }
   }
 }
