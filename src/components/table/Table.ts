@@ -20,8 +20,10 @@ import {
   COL_PARENT_PROP_DYNAMIC,
   ROW_PARENT_PROP_DYNAMIC,
 } from './config'
+import {TableSelection} from './TableSelection'
 
 export class Table extends ExcelComponent {
+  private selection: TableSelection
   constructor({
     root,
     options = {},
@@ -37,6 +39,18 @@ export class Table extends ExcelComponent {
   toHTML(): string {
     this.root.innerHTML = createTable(15)
     return this.root.innerHTML
+  }
+
+  init(): void {
+    super.init()
+    this.selection = new TableSelection()
+    this.selection.select(this.root.querySelector('[data-id="1:A"]'))
+  }
+
+  onClick(evt: IEvent): void {
+    if (evt.target.dataset.id) {
+      this.selection.select(evt.target)
+    }
   }
 
   onMousedown(evt: IEvent): void {

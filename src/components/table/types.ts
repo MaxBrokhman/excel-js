@@ -10,6 +10,7 @@ interface ITarget extends HTMLElement {
   closest: (selector: string) => HTMLElement,
   dataset: {
     resize?: string,
+    id?: string,
   }
 }
 

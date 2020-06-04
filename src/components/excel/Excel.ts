@@ -24,7 +24,8 @@ export class Excel {
   }
 
   render(): void {
+    const root = this.getRoot()
     this.components.forEach((component) => component.init())
-    this.element.append(this.getRoot())
+    this.element.append(root)
   }
 }

@@ -24,7 +24,7 @@ const excel = new Excel('#app', {
     new Table({
       root: document.createElement('section'),
       options: {
-        listeners: ['mousedown'],
+        listeners: ['mousedown', 'click'],
       },
       className: 'excel-table',
     }),

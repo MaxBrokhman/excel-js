@@ -1,10 +1,16 @@
 const MIN_CHAR_CODE = 65
 const MAX_CHAR_CODE = 90
+const ID_SEPARATOR = ':'
 
 const getCharByCode = (code: number) => String.fromCharCode(code)
 
 const createCell = (col: string, headerContent: number) => `
-  <td class="cell" data-index="${headerContent}" data-col="${col}"></td>
+  <td 
+    class="cell" 
+    data-index="${headerContent}" 
+    data-col="${col}"
+    data-id="${headerContent}${ID_SEPARATOR}${col}"
+  ></td>
 `
 
 const createRow = (headerContent: number, colsCount: number): string => {
