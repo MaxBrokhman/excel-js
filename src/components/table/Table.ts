@@ -7,6 +7,9 @@ import {
   moveHandler,
   setStyles,
   updateBasePropWithDelta,
+  parseCellId,
+  getRangeFromLetters,
+  getRangeFromNumbers,
 } from './utils'
 import {
   COL_RESIZE_PARENT_SELECTOR,
@@ -19,6 +22,7 @@ import {
   rowCleanedStyles,
   COL_PARENT_PROP_DYNAMIC,
   ROW_PARENT_PROP_DYNAMIC,
+  ID_SEPARATOR,
 } from './config'
 import {TableSelection} from './TableSelection'
 
@@ -49,7 +53,24 @@ export class Table extends ExcelComponent {
 
   onClick(evt: IEvent): void {
     if (evt.target.dataset.id) {
-      this.selection.select(evt.target)
+      if (evt.shiftKey) {
+        const target = parseCellId(evt.target.dataset.id)
+        const current = parseCellId(this.selection.current?.dataset?.id)
+        const rowsRange = getRangeFromLetters(current[1], target[1])
+        const colsRange = getRangeFromNumbers(
+            Number(current[0]),
+            Number(target[0])
+        )
+        const ids = colsRange.reduce((acc, col) => {
+          rowsRange.forEach((row) => acc.push(`${col}${ID_SEPARATOR}${row}`))
+          return acc
+        }, [])
+        const selectedCells: Array<HTMLElement> = ids.map((id) =>
+          this.root.querySelector(`[data-id="${id}"]`))
+        this.selection.selectGroup(selectedCells)
+      } else {
+        this.selection.select(evt.target)
+      }
     }
   }
 

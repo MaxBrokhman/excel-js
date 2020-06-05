@@ -31,3 +31,9 @@ export const ROW_RESIZER_MOVE_PROP = 'bottom'
 
 export const COL_PARENT_PROP_DYNAMIC = 'width'
 export const ROW_PARENT_PROP_DYNAMIC = 'height'
+
+export const MIN_CHAR_CODE = 65
+export const MAX_CHAR_CODE = 90
+export const ID_SEPARATOR = ':'
+
+export const SELECTED_CELL_CLASSNAME = 'selected'

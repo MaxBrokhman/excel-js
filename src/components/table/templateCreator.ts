@@ -1,6 +1,9 @@
-const MIN_CHAR_CODE = 65
-const MAX_CHAR_CODE = 90
-const ID_SEPARATOR = ':'
+import {
+  ID_SEPARATOR,
+  MIN_CHAR_CODE,
+  MAX_CHAR_CODE,
+} from './config'
+
 
 const getCharByCode = (code: number) => String.fromCharCode(code)
 
