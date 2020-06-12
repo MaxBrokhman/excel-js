@@ -1,16 +1,22 @@
-import {ExcelComponent} from '../../core/ExcelComponent';
+class FormulaField extends HTMLElement {
+  constructor() {
+    super()
+    this.className = 'excel-formula'
+  }
+  connectedCallback(): void {
+    this.innerHTML = this.html
+  }
 
-export class Formula extends ExcelComponent {
-  toHTML(): string {
-    this.root.innerHTML = `
+  get html(): string {
+    return `
       <h2 class="visually-hidden">Excel table formula</h2>
       <div class="caption">
         fx
       </div>
       <input class="input">
-
       </input>
     `
-    return this.root.innerHTML
   }
 }
+
+customElements.define('formula-field', FormulaField)

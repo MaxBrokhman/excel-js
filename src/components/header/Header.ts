@@ -1,8 +1,15 @@
-import {ExcelComponent} from '../../core/ExcelComponent';
+class HeaderSection extends HTMLElement {
+  constructor() {
+    super()
+    this.className = 'excel-header'
+  }
 
-export class Header extends ExcelComponent {
-  toHTML(): string {
-    this.root.innerHTML = `
+  connectedCallback() {
+    this.innerHTML = this.html
+  }
+
+  get html(): string {
+    return `
       <input type="text" class="input" value="New table">
       <div>
         <button class="button">
@@ -13,6 +20,7 @@ export class Header extends ExcelComponent {
         </button>
       </div>
     `
-    return this.root.innerHTML
   }
 }
+
+customElements.define('header-section', HeaderSection)

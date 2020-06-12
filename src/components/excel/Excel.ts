@@ -1,31 +1,21 @@
-import {ExcelComponent} from '../../core/ExcelComponent';
-
-export type TOptions = {
-  components: Array<ExcelComponent>,
-}
-
-export class Excel {
-  private element: HTMLElement;
-  private components: Array<ExcelComponent>;
-  private readonly rootClassName = 'excel'
-  constructor(selector: string, options: TOptions) {
-    this.element = document.querySelector(selector)
-    this.components = options.components || []
+class ExcelTable extends HTMLElement {
+  constructor() {
+    super()
+    this.className = 'excel'
   }
 
-  getRoot(): HTMLElement {
-    const root = document.createElement('div')
-    root.classList.add(this.rootClassName)
-    this.components.forEach((component) => {
-      component.toHTML()
-      root.appendChild(component.root)
-    })
-    return root
+  connectedCallback(): void {
+    this.innerHTML = this.html
   }
 
-  render(): void {
-    const root = this.getRoot()
-    this.components.forEach((component) => component.init())
-    this.element.append(root)
+  get html(): string {
+    return `
+      <header-section></header-section>
+      <toolbar-section></toolbar-section>
+      <formula-field></formula-field>
+      <table-section></table-section>
+    `
   }
 }
+
+customElements.define('excel-table', ExcelTable)

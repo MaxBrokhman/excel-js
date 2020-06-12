@@ -1,6 +1,5 @@
-import {ExcelComponent} from '../../core/ExcelComponent'
 import {createTable} from './templateCreator'
-import {IEvent, TProps} from './types'
+import {IEvent} from './types'
 import {
   getDelta,
   mouseUpCleaner,
@@ -26,32 +25,29 @@ import {
 } from './config'
 import {TableSelection} from './TableSelection'
 
-export class Table extends ExcelComponent {
+class TableSection extends HTMLElement {
   private selection: TableSelection
-  constructor({
-    root,
-    options = {},
-    className,
-  }: TProps) {
-    super({
-      root,
-      listeners: options.listeners,
-      className,
-    })
+  constructor() {
+    super()
+    this.className = 'excel-table'
+    this.onmousedown = (evt: IEvent) => this.onMousedownHandler(evt)
+    this.onclick = (evt: IEvent) => this.onClickHandler(evt)
   }
 
-  toHTML(): string {
-    this.root.innerHTML = createTable(15)
-    return this.root.innerHTML
-  }
-
-  init(): void {
-    super.init()
+  connectedCallback(): void {
+    this.innerHTML = this.html
     this.selection = new TableSelection()
-    this.selection.select(this.root.querySelector('[data-id="1:A"]'))
+    this.selection.select(this.querySelector('[data-id="1:A"]'))
   }
 
-  onClick(evt: IEvent): void {
+  get html(): string {
+    return `
+      <h2 class="visually-hidden">Excel table</h2>
+      ${createTable(15)}
+    `
+  }
+
+  onClickHandler(evt: IEvent): void {
     if (evt.target.dataset.id) {
       if (evt.shiftKey) {
         const target = parseCellId(evt.target.dataset.id)
@@ -66,7 +62,7 @@ export class Table extends ExcelComponent {
           return acc
         }, [])
         const selectedCells: Array<HTMLElement> = ids.map((id) =>
-          this.root.querySelector(`[data-id="${id}"]`))
+          this.querySelector(`[data-id="${id}"]`))
         this.selection.selectGroup(selectedCells)
       } else {
         this.selection.select(evt.target)
@@ -74,7 +70,7 @@ export class Table extends ExcelComponent {
     }
   }
 
-  onMousedown(evt: IEvent): void {
+  onMousedownHandler(evt: IEvent): void {
     if (evt.target.dataset && evt.target.dataset.resize) {
       const resizer = evt.target
       const resizeType = resizer.dataset.resize
@@ -109,7 +105,7 @@ export class Table extends ExcelComponent {
           ? COL_PARENT_PROP_DYNAMIC
           : ROW_PARENT_PROP_DYNAMIC
         updateBasePropWithDelta(parent, parentPropToUpdate, delta)
-        isColResize && this.root.querySelectorAll(
+        isColResize && this.querySelectorAll(
             `td[data-col="${parent.dataset['col']}"]`
         ).forEach((cell: HTMLElement) => updateBasePropWithDelta(
             cell,
@@ -120,3 +116,5 @@ export class Table extends ExcelComponent {
     }
   }
 }
+
+customElements.define('table-section', TableSection)
