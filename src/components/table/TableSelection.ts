@@ -8,6 +8,7 @@ export class TableSelection {
     this.group.push(element)
     this.current = element
     this.setSelected(element)
+    element.focus()
   }
 
   selectGroup(group: Array<HTMLElement>): void {

@@ -9,6 +9,8 @@ import {
   parseCellId,
   getRangeFromLetters,
   getRangeFromNumbers,
+  incrementLetter,
+  decrementLetter,
 } from './utils'
 import {
   COL_RESIZE_PARENT_SELECTOR,
@@ -32,6 +34,7 @@ class TableSection extends HTMLElement {
     this.className = 'excel-table'
     this.onmousedown = (evt: IEvent) => this.onMousedownHandler(evt)
     this.onclick = (evt: IEvent) => this.onClickHandler(evt)
+    this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
   }
 
   connectedCallback(): void {
@@ -45,6 +48,42 @@ class TableSection extends HTMLElement {
       <h2 class="visually-hidden">Excel table</h2>
       ${createTable(15)}
     `
+  }
+
+  keydownHandler(evt: KeyboardEvent): void {
+    const keys = [
+      'Enter',
+      'Tab',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowDown',
+      'ArrowUp',
+    ]
+
+    if (keys.includes(evt.key) && !evt.shiftKey) {
+      evt.preventDefault()
+      const newCellId = this._findNextCellId(evt.key)
+      const nextCell: HTMLElement = this.querySelector(
+          `[data-id="${newCellId}"]`
+      )
+      nextCell && this.selection.select(nextCell)
+    }
+  }
+
+  _findNextCellId(key: string): string {
+    const current = parseCellId(this.selection.current?.dataset?.id)
+    switch (key) {
+      case 'Enter':
+      case 'ArrowDown':
+        return `${Number(current[0]) + 1}${ID_SEPARATOR}${current[1]}`
+      case 'Tab':
+      case 'ArrowRight':
+        return `${current[0]}${ID_SEPARATOR}${incrementLetter(current[1])}`
+      case 'ArrowLeft':
+        return `${current[0]}${ID_SEPARATOR}${decrementLetter(current[1])}`
+      case 'ArrowUp':
+        return `${Number(current[0]) - 1}${ID_SEPARATOR}${current[1]}`
+    }
   }
 
   onClickHandler(evt: IEvent): void {

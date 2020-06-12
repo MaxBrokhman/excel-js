@@ -36,6 +36,12 @@ export const moveHandler = (
 export const parseCellId = (id: string): Array<string> =>
   id?.split(ID_SEPARATOR)
 
+export const incrementLetter = (letter: string): string =>
+  String.fromCharCode(letter.charCodeAt(0) + 1)
+
+export const decrementLetter = (letter: string): string =>
+  String.fromCharCode(letter.charCodeAt(0) - 1)
+
 export const getRangeFromLetters = (
     start: string,
     end: string,
