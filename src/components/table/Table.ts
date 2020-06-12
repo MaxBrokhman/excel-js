@@ -26,6 +26,7 @@ import {
   ID_SEPARATOR,
 } from './config'
 import {TableSelection} from './TableSelection'
+import {updater} from '../../core/UpdateObserver'
 
 class TableSection extends HTMLElement {
   private selection: TableSelection
@@ -35,9 +36,12 @@ class TableSection extends HTMLElement {
     this.onmousedown = (evt: IEvent) => this.onMousedownHandler(evt)
     this.onclick = (evt: IEvent) => this.onClickHandler(evt)
     this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
+
+    this.formulaInputHandler = this.formulaInputHandler.bind(this)
   }
 
   connectedCallback(): void {
+    updater.subscribe('formula-input', this.formulaInputHandler)
     this.innerHTML = this.html
     this.selection = new TableSelection()
     this.selection.select(this.querySelector('[data-id="1:A"]'))
@@ -68,6 +72,10 @@ class TableSection extends HTMLElement {
       )
       nextCell && this.selection.select(nextCell)
     }
+  }
+
+  formulaInputHandler(data: string): void {
+    this.selection.current.textContent = data
   }
 
   _findNextCellId(key: string): string {

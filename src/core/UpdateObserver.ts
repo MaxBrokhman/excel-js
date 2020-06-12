@@ -1,10 +1,10 @@
-type TData = Record<string, string | number>
+type TData = Record<string, string | number> | string
 type TCallback = (data?: TData) => void
 
 class UpdateObserver {
   public subscriptions: Record<string, Array<TCallback>> = Object.create(null)
 
-  public subscribe(event: string, callback: () => void) {
+  public subscribe(event: string, callback: TCallback) {
     if (this.subscriptions[event]) {
       this.subscriptions[event].push(callback)
     } else {
@@ -12,7 +12,7 @@ class UpdateObserver {
     }
   }
 
-  public unsubscribe(event: string, callback: () => void) {
+  public unsubscribe(event: string, callback: TCallback) {
     if (this.subscriptions[event]) {
       this.subscriptions[event] =
         this.subscriptions[event].filter((sub) => sub !== callback)
