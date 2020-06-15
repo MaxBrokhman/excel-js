@@ -33,18 +33,21 @@ class TableSection extends HTMLElement {
   constructor() {
     super()
     this.className = 'excel-table'
-    this.onmousedown = (evt: IEvent) => this.onMousedownHandler(evt)
-    this.onclick = (evt: IEvent) => this.onClickHandler(evt)
+    this.onmousedown = (evt: IEvent) => this.mousedownHandler(evt)
+    this.onclick = (evt: IEvent) => this.clickHandler(evt)
     this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
+    this.oninput = () => this.cellChangeHandler()
 
     this.formulaInputHandler = this.formulaInputHandler.bind(this)
+    this.formulaDoneHandler = this.formulaDoneHandler.bind(this)
   }
 
   connectedCallback(): void {
     updater.subscribe('formula-input', this.formulaInputHandler)
+    updater.subscribe('formula-done', this.formulaDoneHandler)
     this.innerHTML = this.html
     this.selection = new TableSelection()
-    this.selection.select(this.querySelector('[data-id="1:A"]'))
+    this.changeCell(this.querySelector('[data-id="1:A"]'))
   }
 
   get html(): string {
@@ -70,7 +73,9 @@ class TableSection extends HTMLElement {
       const nextCell: HTMLElement = this.querySelector(
           `[data-id="${newCellId}"]`
       )
-      nextCell && this.selection.select(nextCell)
+      if (nextCell) {
+        this.changeCell(nextCell)
+      }
     }
   }
 
@@ -94,7 +99,22 @@ class TableSection extends HTMLElement {
     }
   }
 
-  onClickHandler(evt: IEvent): void {
+  cellChangeHandler() {
+    updater.dispatch('cell-change', this.selection.current.textContent)
+  }
+
+  changeCell(nextCell: HTMLElement): void {
+    this.selection.select(nextCell)
+    updater.dispatch('cell-change', this.selection.current.textContent)
+  }
+
+  formulaDoneHandler(): void {
+    const cell = this.selection.current
+    cell.focus()
+    // cell.setSelectionRange(cell.textContent.length, cell.textContent.length)
+  }
+
+  clickHandler(evt: IEvent): void {
     if (evt.target.dataset.id) {
       if (evt.shiftKey) {
         const target = parseCellId(evt.target.dataset.id)
@@ -112,12 +132,12 @@ class TableSection extends HTMLElement {
           this.querySelector(`[data-id="${id}"]`))
         this.selection.selectGroup(selectedCells)
       } else {
-        this.selection.select(evt.target)
+        this.changeCell(evt.target)
       }
     }
   }
 
-  onMousedownHandler(evt: IEvent): void {
+  mousedownHandler(evt: IEvent): void {
     if (evt.target.dataset && evt.target.dataset.resize) {
       const resizer = evt.target
       const resizeType = resizer.dataset.resize
