@@ -25,6 +25,5 @@ export class TableSelection {
 
   private setSelected(element: Element): void {
     element?.classList.add(SELECTED_CELL_CLASSNAME)
-    element?.setAttribute('contenteditable', '')
   }
 }

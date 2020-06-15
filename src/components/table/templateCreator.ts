@@ -13,6 +13,7 @@ const createCell = (col: string, headerContent: number) => `
     data-index="${headerContent}" 
     data-col="${col}"
     data-id="${headerContent}${ID_SEPARATOR}${col}"
+    contenteditable
   ></td>
 `
 
