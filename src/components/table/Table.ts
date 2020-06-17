@@ -1,186 +1,104 @@
-import {createTable} from './templateCreator'
-import {IEvent} from './types'
 import {
-  getDelta,
-  mouseUpCleaner,
-  moveHandler,
-  setStyles,
-  updateBasePropWithDelta,
-  parseCellId,
-  getRangeFromLetters,
-  getRangeFromNumbers,
-  incrementLetter,
-  decrementLetter,
-} from './utils'
-import {
-  COL_RESIZE_PARENT_SELECTOR,
-  ROW_RESIZE_PARENT_SELECTOR,
-  colMoveStyles,
-  rowMoveStyles,
-  COL_RESIZER_MOVE_PROP,
-  ROW_RESIZER_MOVE_PROP,
-  colCleanedStyles,
-  rowCleanedStyles,
-  COL_PARENT_PROP_DYNAMIC,
-  ROW_PARENT_PROP_DYNAMIC,
   ID_SEPARATOR,
-} from './config'
-import {TableSelection} from './TableSelection'
-import {updater} from '../../core/UpdateObserver'
+  MIN_CHAR_CODE,
+  MAX_CHAR_CODE,
+} from '../../controllers/TableController/config'
 
-class TableSection extends HTMLElement {
-  private selection: TableSelection
+export class TableSection extends HTMLElement {
+  private readonly rowsCount: number = 15
+  private readonly idSeperator: string = ID_SEPARATOR
+  private readonly maxCharCode: number = MAX_CHAR_CODE
+  private readonly minCharCode: number = MIN_CHAR_CODE
   constructor() {
     super()
     this.className = 'excel-table'
-    this.onmousedown = (evt: IEvent) => this.mousedownHandler(evt)
-    this.onclick = (evt: IEvent) => this.clickHandler(evt)
-    this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
-    this.oninput = () => this.cellChangeHandler()
-
-    this.formulaInputHandler = this.formulaInputHandler.bind(this)
-    this.formulaDoneHandler = this.formulaDoneHandler.bind(this)
   }
 
   connectedCallback(): void {
-    updater.subscribe('formula-input', this.formulaInputHandler)
-    updater.subscribe('formula-done', this.formulaDoneHandler)
     this.innerHTML = this.html
-    this.selection = new TableSelection()
-    this.changeCell(this.querySelector('[data-id="1:A"]'))
   }
 
   get html(): string {
     return `
       <h2 class="visually-hidden">Excel table</h2>
-      ${createTable(15)}
+      ${this._renderTable()}
     `
   }
 
-  keydownHandler(evt: KeyboardEvent): void {
-    const keys = [
-      'Enter',
-      'Tab',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowDown',
-      'ArrowUp',
-    ]
+  private _renderCell(col: string, headerContent: number): string {
+    return `
+      <td 
+        class="cell" 
+        data-index="${headerContent}" 
+        data-col="${col}"
+        data-id="${headerContent}${this.idSeperator}${col}"
+        contenteditable
+      ></td>
+    `
+  }
 
-    if (keys.includes(evt.key) && !evt.shiftKey) {
-      evt.preventDefault()
-      const newCellId = this._findNextCellId(evt.key)
-      const nextCell: HTMLElement = this.querySelector(
-          `[data-id="${newCellId}"]`
+  private _renderRow(headerContent: number, colsCount: number): string {
+    const cells = []
+    for (let i = 0; i < colsCount; i++) {
+      cells.push(this._renderCell(
+          String.fromCharCode(this.minCharCode + i),
+          headerContent
+      ))
+    }
+    return `
+      <tr class="row">
+        <td 
+          class="row-info table-header-cell"
+          data-index="${headerContent}"
+        >
+          <div class="row-resize" data-resize="row"></div>
+          ${headerContent}
+        </td>
+        ${cells.join('')}
+      </tr>
+    `
+  }
+
+  private _renderHeaderCell(headerCell: string): string {
+    return `
+      <th 
+        class="row-data table-header-cell" 
+        data-type="resizable" 
+        data-col="${headerCell}"
+      >
+        ${headerCell}
+        <div class="col-resize" data-resize="col"></div>
+      </th>
+    `
+  }
+
+  private _renderTable(): string {
+    const colsCount = this.maxCharCode - this.minCharCode
+    const rows = []
+    const headerCells = []
+    for (let i = 0; i <= colsCount; i++) {
+      headerCells.push(
+          this._renderHeaderCell(
+              String.fromCharCode(this.minCharCode + i),
+          )
       )
-      if (nextCell) {
-        this.changeCell(nextCell)
-      }
     }
-  }
-
-  formulaInputHandler(data: string): void {
-    this.selection.current.textContent = data
-  }
-
-  _findNextCellId(key: string): string {
-    const current = parseCellId(this.selection.current?.dataset?.id)
-    switch (key) {
-      case 'Enter':
-      case 'ArrowDown':
-        return `${Number(current[0]) + 1}${ID_SEPARATOR}${current[1]}`
-      case 'Tab':
-      case 'ArrowRight':
-        return `${current[0]}${ID_SEPARATOR}${incrementLetter(current[1])}`
-      case 'ArrowLeft':
-        return `${current[0]}${ID_SEPARATOR}${decrementLetter(current[1])}`
-      case 'ArrowUp':
-        return `${Number(current[0]) - 1}${ID_SEPARATOR}${current[1]}`
+    for (let i = 0; i < this.rowsCount; i++) {
+      rows.push(this._renderRow(i + 1, colsCount))
     }
-  }
-
-  cellChangeHandler() {
-    updater.dispatch('cell-change', this.selection.current.textContent)
-  }
-
-  changeCell(nextCell: HTMLElement): void {
-    this.selection.select(nextCell)
-    updater.dispatch('cell-change', this.selection.current.textContent)
-  }
-
-  formulaDoneHandler(): void {
-    const cell = this.selection.current
-    cell.focus()
-    // cell.setSelectionRange(cell.textContent.length, cell.textContent.length)
-  }
-
-  clickHandler(evt: IEvent): void {
-    if (evt.target.dataset.id) {
-      if (evt.shiftKey) {
-        const target = parseCellId(evt.target.dataset.id)
-        const current = parseCellId(this.selection.current?.dataset?.id)
-        const rowsRange = getRangeFromLetters(current[1], target[1])
-        const colsRange = getRangeFromNumbers(
-            Number(current[0]),
-            Number(target[0])
-        )
-        const ids = colsRange.reduce((acc, col) => {
-          rowsRange.forEach((row) => acc.push(`${col}${ID_SEPARATOR}${row}`))
-          return acc
-        }, [])
-        const selectedCells: Array<HTMLElement> = ids.map((id) =>
-          this.querySelector(`[data-id="${id}"]`))
-        this.selection.selectGroup(selectedCells)
-      } else {
-        this.changeCell(evt.target)
-      }
-    }
-  }
-
-  mousedownHandler(evt: IEvent): void {
-    if (evt.target.dataset && evt.target.dataset.resize) {
-      const resizer = evt.target
-      const resizeType = resizer.dataset.resize
-      let delta: number
-      const isColResize = resizeType === 'col'
-      const parent = isColResize
-        ? resizer.closest(COL_RESIZE_PARENT_SELECTOR)
-        : resizer.closest(ROW_RESIZE_PARENT_SELECTOR)
-      const coordsProvider = isColResize
-        ? resizer
-        : parent
-      const coords = coordsProvider.getBoundingClientRect()
-      const stylesOnMove = isColResize
-        ? colMoveStyles
-        : rowMoveStyles
-      setStyles(resizer, stylesOnMove)
-      document.onmousemove = (moveEvt: IEvent) => {
-        delta = isColResize
-          ? getDelta(moveEvt.pageX, coords[COL_RESIZER_MOVE_PROP])
-          : getDelta(moveEvt.pageY, coords[ROW_RESIZER_MOVE_PROP])
-        isColResize
-        ? moveHandler(resizer, COL_RESIZER_MOVE_PROP, delta)
-        : moveHandler(resizer, ROW_RESIZER_MOVE_PROP, delta)
-      }
-      document.onmouseup = () => {
-        mouseUpCleaner()
-        const stylesToClean = isColResize
-          ? colCleanedStyles
-          : rowCleanedStyles
-        setStyles(resizer, stylesToClean)
-        const parentPropToUpdate = isColResize
-          ? COL_PARENT_PROP_DYNAMIC
-          : ROW_PARENT_PROP_DYNAMIC
-        updateBasePropWithDelta(parent, parentPropToUpdate, delta)
-        isColResize && this.querySelectorAll(
-            `td[data-col="${parent.dataset['col']}"]`
-        ).forEach((cell: HTMLElement) => updateBasePropWithDelta(
-            cell,
-            COL_PARENT_PROP_DYNAMIC,
-            delta
-        ))
-      }
-    }
+    return `
+      <table class="table">
+        <thead>
+          <tr class="row">
+            <th class="row-info table-header-cell"></th>
+            ${headerCells.join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.join('')}
+        </tbody>
+      </table>
+    `
   }
 }
 

@@ -1,48 +1,35 @@
-import {updater} from '../../core/UpdateObserver'
-
-class FormulaField extends HTMLElement {
-  private input: HTMLInputElement
+export class FormulaField extends HTMLElement {
+  public input: HTMLInputElement
   constructor() {
     super()
     this.className = 'excel-formula'
     this.input = null
-
-    this.cellChange = this.cellChange.bind(this)
   }
 
   connectedCallback(): void {
-    updater.subscribe('cell-change', this.cellChange)
     this.innerHTML = this.html
     this.input = this.querySelector('.input')
-    this.input.oninput = () => this.inputHandler()
-    this.input.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
+    this.input.oninput = (evt: InputEvent) => this.dispatchEvent(evt)
+    this.input.onkeydown = (evt: KeyboardEvent) => this.dispatchEvent(evt)
+  }
+
+  get inputValue(): string {
+    return this.input.value
+  }
+
+  set inputValue(value: string) {
+    this.input.value = value
   }
 
   get html(): string {
     return `
       <h2 class="visually-hidden">Excel table formula</h2>
-      <div class="caption">
+      <label class="caption" for="formula-input">
         fx
-      </div>
-      <input class="input">
+      </label>
+      <input class="input" id="formula-input">
       </input>
     `
-  }
-
-  inputHandler(): void {
-    updater.dispatch('formula-input', this.input.value.trim())
-  }
-
-  keydownHandler(evt: KeyboardEvent): void {
-    const keys = ['Enter', 'Tab']
-    if (keys.includes(evt.key)) {
-      evt.preventDefault()
-      updater.dispatch('formula-done')
-    }
-  }
-
-  cellChange(content: string) {
-    this.input.value = content
   }
 }
 

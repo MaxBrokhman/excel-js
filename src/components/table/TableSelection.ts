@@ -1,4 +1,4 @@
-import {SELECTED_CELL_CLASSNAME} from './config'
+import {SELECTED_CELL_CLASSNAME} from '../../controllers/TableController/config'
 
 export class TableSelection {
   private group: Array<HTMLElement> = []

@@ -16,13 +16,27 @@ export const setStyles = (
   })
 }
 
+type TUpdateStyleProp = {
+  element: HTMLElement,
+  prop: string,
+  value: string,
+}
+
+export const updateStyleProp = ({
+  element,
+  prop,
+  value,
+}: TUpdateStyleProp): void => element.style.setProperty(prop, value)
+
 export const updateBasePropWithDelta = (
     element: HTMLElement,
     prop: string,
     delta: number,
-): void => {
+): string => {
   const baseProp = parseInt(getComputedStyle(element).getPropertyValue(prop))
-  element.style.setProperty(prop, `${baseProp + delta}px`)
+  const result = `${baseProp + delta}px`
+  updateStyleProp({element, prop, value: result})
+  return result
 }
 
 export const moveHandler = (
