@@ -27,25 +27,30 @@ import {
   updateStyleProp,
 } from './utils';
 import {IEvent} from '../../components/table/types';
+import {LocalStorageManager, TValue} from '../../core/LocalStorageManager';
 
 type TProps = {
   table: HTMLElement,
   selection: TableSelection,
   updater: UpdateObserver,
+  storage: LocalStorageManager,
 }
 
 export class TableController {
   private table: HTMLElement
   private selection: TableSelection
   private updater: UpdateObserver
+  private storage: LocalStorageManager
   constructor({
     selection,
     table,
     updater,
+    storage,
   }: TProps) {
     this.table = table
     this.selection = selection
     this.updater = updater
+    this.storage = storage
 
     this.formulaInputHandler = this.formulaInputHandler.bind(this)
     this.formulaDoneHandler = this.formulaDoneHandler.bind(this)
@@ -59,6 +64,11 @@ export class TableController {
     this.table.onclick = (evt: IEvent) => this.tableClickHandler(evt)
     this.table.onmousedown = (evt: IEvent) => this.mousedownHandler(evt)
     this.changeActiveCell(this.table.querySelector('[data-id="1:A"]'))
+    const resizedCells = this.extractTableData()
+    resizedCells.forEach((cell) => {
+      cell.col && this.updateColumnWidth(cell.col, cell.value)
+      cell.row && this.updateRowHeight(cell.row, cell.value)
+    })
   }
 
   formulaInputHandler(data: string): void {
@@ -77,7 +87,7 @@ export class TableController {
 
   changeActiveCell(nextCell: HTMLElement): void {
     this.selection.select(nextCell)
-    this.updater.dispatch('cell-change', this.selection.current.textContent)
+    this.cellChangeHandler()
   }
 
   keydownHandler(evt: KeyboardEvent): void {
@@ -125,6 +135,19 @@ export class TableController {
     }
   }
 
+  storeTableData(data: Record<string, string>):void {
+    const stored = this.storage.getValue('table-resize-data')
+    if (stored) {
+      this.storage.setValue('table-resize-data', [...stored, data])
+    } else {
+      this.storage.setValue('table-resize-data', [data])
+    }
+  }
+
+  extractTableData(): TValue {
+    return this.storage.getValue('table-resize-data') || []
+  }
+
   mousedownHandler(evt: IEvent): void {
     if (evt.target.dataset && evt.target.dataset.resize) {
       const resizer = evt.target
@@ -164,24 +187,37 @@ export class TableController {
             parentPropToUpdate,
             delta,
         )
-        isColResize && this.table.querySelectorAll(
-            `td[data-col="${parent.dataset['col']}"]`
-        ).forEach((cell: HTMLElement) => updateStyleProp({
-          element: cell,
-          prop: COL_PARENT_PROP_DYNAMIC,
-          value: resultValue,
-        }))
+        isColResize &&
+          this.updateColumnWidth(parent.dataset['col'], resultValue)
         isColResize
-          ? this.updater.dispatch('resize-col', {
+          ? this.storeTableData({
             col: parent.dataset.col,
             value: resultValue,
           })
-          : this.updater.dispatch('resize-row', {
-            col: parent.dataset.index,
+          : this.storeTableData({
+            row: parent.dataset.index,
             value: resultValue,
           })
       }
     }
+  }
+
+  updateColumnWidth(col: string, value: string): void {
+    this.table.querySelectorAll(
+        `td[data-col="${col}"]`
+    ).forEach((cell: HTMLElement) => updateStyleProp({
+      element: cell,
+      prop: COL_PARENT_PROP_DYNAMIC,
+      value,
+    }))
+  }
+
+  updateRowHeight(row: string, value: string): void {
+    updateStyleProp({
+      element: this.table.querySelector(`.row[data-index="${row}"]`),
+      prop: ROW_PARENT_PROP_DYNAMIC,
+      value,
+    })
   }
 
   _findNextCellId(key: string): string {

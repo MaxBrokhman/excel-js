@@ -11,6 +11,7 @@ import {updater} from './core/UpdateObserver'
 import {
   FormulaController,
 } from './controllers/FormulaController/FormulaController'
+import {localStorageManager} from './core/LocalStorageManager'
 
 const root = document.querySelector('excel-table')
 const app = new App([
@@ -18,6 +19,7 @@ const app = new App([
     selection: new TableSelection(),
     table: root.querySelector('table-section'),
     updater,
+    storage: localStorageManager,
   }),
   new FormulaController({
     formula: root.querySelector('formula-field'),

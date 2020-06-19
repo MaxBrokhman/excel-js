@@ -46,7 +46,7 @@ export class TableSection extends HTMLElement {
       ))
     }
     return `
-      <tr class="row">
+      <tr class="row" data-index="${headerContent}">
         <td 
           class="row-info table-header-cell"
           data-index="${headerContent}"
