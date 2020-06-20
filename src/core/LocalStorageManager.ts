@@ -1,4 +1,4 @@
-export type TValue = Array<Record<string, string>>
+export type TValue = Record<string, string>
 
 export class LocalStorageManager {
   private prefix: string = window.location.href

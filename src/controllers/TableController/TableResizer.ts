@@ -59,8 +59,7 @@ export class TableResizer {
         this.delta,
     )
     return {
-      value: resultValue,
-      [this.parentDataProp]: this.parent.dataset[this.parentDataProp],
+      [this.parent.dataset[this.parentDataProp]]: resultValue,
     }
   }
 

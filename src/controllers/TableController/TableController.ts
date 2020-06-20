@@ -53,16 +53,21 @@ export class TableController {
     this.table.oninput = () => this.cellChangeHandler()
     this.table.onclick = (evt: IEvent) => this.tableClickHandler(evt)
     this.table.onmousedown = (evt: IEvent) => this.mousedownHandler(evt)
+    const resizedCols = this.extractResizedCols()
+    const resixedRows = this.extractResizedRows()
+    Object.keys(resizedCols).forEach((key) =>
+      this.updateColumnWidth(key, resizedCols[key]))
+    Object.keys(resixedRows).forEach((key) =>
+      this.updateRowHeight(key, resixedRows[key]))
+    const filledCells = this.extractContentData()
+    Object.keys(filledCells).forEach((key) =>
+      this.updateContent(key, filledCells[key]))
     this.changeActiveCell(this.table.querySelector('[data-id="1:A"]'))
-    const resizedCells = this.extractTableData()
-    resizedCells.forEach((cell) => {
-      cell.col && this.updateColumnWidth(cell.col, cell.value)
-      cell.index && this.updateRowHeight(cell.index, cell.value)
-    })
   }
 
   formulaInputHandler(data: string): void {
     this.selection.current.textContent = data
+    this.storeContentData({[this.selection.current.dataset.id]: data})
   }
 
   formulaDoneHandler(): void {
@@ -72,7 +77,11 @@ export class TableController {
   }
 
   cellChangeHandler(): void {
-    this.updater.dispatch('cell-change', this.selection.current.textContent)
+    const content = this.selection.current.textContent
+    console.log(this.selection.current, content);
+
+    this.updater.dispatch('cell-change', content)
+    this.storeContentData({[this.selection.current.dataset.id]: content})
   }
 
   changeActiveCell(nextCell: HTMLElement): void {
@@ -110,7 +119,7 @@ export class TableController {
         const rowsRange = getRangeFromLetters(current[1], target[1])
         const colsRange = getRangeFromNumbers(
             Number(current[0]),
-            Number(target[0])
+            Number(target[0]),
         )
         const ids = colsRange.reduce((acc, col) => {
           rowsRange.forEach((row) => acc.push(`${col}${ID_SEPARATOR}${row}`))
@@ -125,17 +134,37 @@ export class TableController {
     }
   }
 
-  storeTableData(data: Record<string, string>):void {
-    const stored = this.storage.getValue('table-resize-data')
+  storeContentData(data: Record<string, string>): void {
+    this.storeData('table-content-data', data)
+  }
+
+  extractContentData(): TValue {
+    return this.storage.getValue('table-content-data') || {}
+  }
+
+  storeResizedCols(data: Record<string, string>):void {
+    this.storeData('table-resize-cols', data)
+  }
+
+  storeResizedRows(data: Record<string, string>): void {
+    this.storeData('table-resize-rows', data)
+  }
+
+  storeData(key: string, data: Record<string, string>): void {
+    const stored = this.storage.getValue(key)
     if (stored) {
-      this.storage.setValue('table-resize-data', [...stored, data])
+      this.storage.setValue(key, {...stored, ...data})
     } else {
-      this.storage.setValue('table-resize-data', [data])
+      this.storage.setValue(key, {...data})
     }
   }
 
-  extractTableData(): TValue {
-    return this.storage.getValue('table-resize-data') || []
+  extractResizedCols(): TValue {
+    return this.storage.getValue('table-resize-cols') || {}
+  }
+
+  extractResizedRows(): TValue {
+    return this.storage.getValue('table-resize-rows') || {}
   }
 
   mousedownHandler(evt: IEvent): void {
@@ -149,12 +178,19 @@ export class TableController {
         document.onmouseup = () => {
           const resizedData = this.tableResizer.finishMoving()
           this.tableResizer.isColumnResize &&
-            this.updateColumnWidth(resizedData.col, resizedData.value)
-          this.storeTableData(resizedData)
+            Object.keys(resizedData).forEach((key) =>
+              this.updateColumnWidth(key, resizedData[key]))
+          this.tableResizer.isColumnResize
+            ? this.storeResizedCols(resizedData)
+            : this.storeResizedRows(resizedData)
           this.tableResizer = null
         }
       }
     }
+  }
+
+  updateContent(id: string, content: string): void {
+    this.table.querySelector(`[data-id="${id}"]`).textContent = content
   }
 
   updateColumnWidth(col: string, value: string): void {

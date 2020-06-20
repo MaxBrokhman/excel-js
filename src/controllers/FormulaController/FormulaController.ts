@@ -17,16 +17,18 @@ export class FormulaController {
     this.updater = updater
 
     this.cellChangeHandler = this.cellChangeHandler.bind(this)
+    this.updater.subscribe('cell-change', this.cellChangeHandler)
   }
 
   init(): void {
-    this.updater.subscribe('cell-change', this.cellChangeHandler)
     this.formula.oninput = () => this.formulaInputHandler()
     this.formula.onkeydown = (evt: KeyboardEvent) =>
       this.formulaKeydownHandler(evt)
   }
 
   cellChangeHandler(content: string):void {
+    console.log('content in formula', content);
+
     this.formula.inputValue = content
   }
 
