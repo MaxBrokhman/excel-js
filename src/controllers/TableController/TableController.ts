@@ -2,14 +2,6 @@ import {TableSelection} from '../../components/table/TableSelection';
 import {UpdateObserver} from '../../core/UpdateObserver';
 import {
   ID_SEPARATOR,
-  COL_RESIZE_PARENT_SELECTOR,
-  ROW_RESIZE_PARENT_SELECTOR,
-  colMoveStyles,
-  rowMoveStyles,
-  COL_RESIZER_MOVE_PROP,
-  ROW_RESIZER_MOVE_PROP,
-  colCleanedStyles,
-  rowCleanedStyles,
   COL_PARENT_PROP_DYNAMIC,
   ROW_PARENT_PROP_DYNAMIC,
 } from './config';
@@ -19,15 +11,11 @@ import {
   decrementLetter,
   getRangeFromNumbers,
   getRangeFromLetters,
-  setStyles,
-  getDelta,
-  moveHandler,
-  mouseUpCleaner,
-  updateBasePropWithDelta,
   updateStyleProp,
 } from './utils';
 import {IEvent} from '../../components/table/types';
 import {LocalStorageManager, TValue} from '../../core/LocalStorageManager';
+import {TableResizer} from './TableResizer';
 
 type TProps = {
   table: HTMLElement,
@@ -41,6 +29,7 @@ export class TableController {
   private selection: TableSelection
   private updater: UpdateObserver
   private storage: LocalStorageManager
+  private tableResizer: TableResizer
   constructor({
     selection,
     table,
@@ -51,6 +40,7 @@ export class TableController {
     this.selection = selection
     this.updater = updater
     this.storage = storage
+    this.tableResizer = null
 
     this.formulaInputHandler = this.formulaInputHandler.bind(this)
     this.formulaDoneHandler = this.formulaDoneHandler.bind(this)
@@ -67,7 +57,7 @@ export class TableController {
     const resizedCells = this.extractTableData()
     resizedCells.forEach((cell) => {
       cell.col && this.updateColumnWidth(cell.col, cell.value)
-      cell.row && this.updateRowHeight(cell.row, cell.value)
+      cell.index && this.updateRowHeight(cell.index, cell.value)
     })
   }
 
@@ -149,62 +139,27 @@ export class TableController {
   }
 
   mousedownHandler(evt: IEvent): void {
-    if (evt.target.dataset && evt.target.dataset.resize) {
-      const resizer = evt.target
-      const resizeType = resizer.dataset.resize
-      let delta: number
-      const isColResize = resizeType === 'col'
-      const parent = isColResize
-        ? resizer.closest(COL_RESIZE_PARENT_SELECTOR)
-        : resizer.closest(ROW_RESIZE_PARENT_SELECTOR)
-      const coordsProvider = isColResize
-        ? resizer
-        : parent
-      const coords = coordsProvider.getBoundingClientRect()
-      const stylesOnMove = isColResize
-        ? colMoveStyles
-        : rowMoveStyles
-      setStyles(resizer, stylesOnMove)
+    const resizer = evt.target
+    const resizeType = resizer.dataset.resize
+    if (resizeType) {
+      this.tableResizer = new TableResizer(resizer, resizeType)
+      this.tableResizer.prepareResizer()
       document.onmousemove = (moveEvt: IEvent) => {
-        delta = isColResize
-          ? getDelta(moveEvt.pageX, coords[COL_RESIZER_MOVE_PROP])
-          : getDelta(moveEvt.pageY, coords[ROW_RESIZER_MOVE_PROP])
-        isColResize
-        ? moveHandler(resizer, COL_RESIZER_MOVE_PROP, delta)
-        : moveHandler(resizer, ROW_RESIZER_MOVE_PROP, delta)
-      }
-      document.onmouseup = () => {
-        mouseUpCleaner()
-        const stylesToClean = isColResize
-          ? colCleanedStyles
-          : rowCleanedStyles
-        setStyles(resizer, stylesToClean)
-        const parentPropToUpdate = isColResize
-          ? COL_PARENT_PROP_DYNAMIC
-          : ROW_PARENT_PROP_DYNAMIC
-        const resultValue = updateBasePropWithDelta(
-            parent,
-            parentPropToUpdate,
-            delta,
-        )
-        isColResize &&
-          this.updateColumnWidth(parent.dataset['col'], resultValue)
-        isColResize
-          ? this.storeTableData({
-            col: parent.dataset.col,
-            value: resultValue,
-          })
-          : this.storeTableData({
-            row: parent.dataset.index,
-            value: resultValue,
-          })
+        this.tableResizer.moveResizer(moveEvt.pageX, moveEvt.pageY)
+        document.onmouseup = () => {
+          const resizedData = this.tableResizer.finishMoving()
+          this.tableResizer.isColumnResize &&
+            this.updateColumnWidth(resizedData.col, resizedData.value)
+          this.storeTableData(resizedData)
+          this.tableResizer = null
+        }
       }
     }
   }
 
   updateColumnWidth(col: string, value: string): void {
     this.table.querySelectorAll(
-        `td[data-col="${col}"]`
+        `[data-col="${col}"]`
     ).forEach((cell: HTMLElement) => updateStyleProp({
       element: cell,
       prop: COL_PARENT_PROP_DYNAMIC,
