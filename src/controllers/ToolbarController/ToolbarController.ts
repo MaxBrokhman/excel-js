@@ -59,17 +59,11 @@ export class ToolbarController {
     ToolbarController.buttons.forEach((button) => {
       const toolbarButton = this.createButton(button)
       toolbarButton.onclick = () => {
-        console.log(button.data, this.selection.group);
-
         this.selection.group.forEach((cell) => {
           Object.keys(button.data).forEach((key) => {
             if (cell.style.getPropertyValue(key) === button.data[key]) {
-              console.log('hERE', cell.style.getPropertyValue(key));
-
               cell.style.setProperty(key, '')
             } else {
-              console.log(key, button.data[key]);
-
               cell.style.setProperty(key, button.data[key])
             }
           })
