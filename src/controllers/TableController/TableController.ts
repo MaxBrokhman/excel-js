@@ -78,7 +78,6 @@ export class TableController {
 
   cellChangeHandler(): void {
     const content = this.selection.current.textContent
-    console.log(this.selection.current, content);
 
     this.updater.dispatch('cell-change', content)
     this.storeContentData({[this.selection.current.dataset.id]: content})

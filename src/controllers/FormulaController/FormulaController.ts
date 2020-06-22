@@ -27,8 +27,6 @@ export class FormulaController {
   }
 
   cellChangeHandler(content: string):void {
-    console.log('content in formula', content);
-
     this.formula.inputValue = content
   }
 

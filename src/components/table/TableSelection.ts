@@ -1,7 +1,7 @@
 import {SELECTED_CELL_CLASSNAME} from '../../controllers/TableController/config'
 
 export class TableSelection {
-  private group: Array<HTMLElement> = []
+  public group: Array<HTMLElement> = []
   public current: HTMLElement = null
   select(element: HTMLElement): void {
     this.clear()

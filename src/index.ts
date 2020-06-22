@@ -12,17 +12,28 @@ import {
   FormulaController,
 } from './controllers/FormulaController/FormulaController'
 import {localStorageManager} from './core/LocalStorageManager'
+import {
+  ToolbarController,
+} from './controllers/ToolbarController/ToolbarController'
+
+const selection = new TableSelection()
 
 const root = document.querySelector('excel-table')
 const app = new App([
   new TableController({
-    selection: new TableSelection(),
+    selection,
     table: root.querySelector('table-section'),
     updater,
     storage: localStorageManager,
   }),
   new FormulaController({
     formula: root.querySelector('formula-field'),
+    updater,
+  }),
+  new ToolbarController({
+    toolbar: root.querySelector('toolbar-section'),
+    selection,
+    storage: localStorageManager,
     updater,
   }),
 ])
