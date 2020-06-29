@@ -1,4 +1,12 @@
-export class FormulaField extends HTMLElement {
+import {Wp} from '../../core/Wp'
+import {setCurrentText} from '../../core/action'
+import {IEvent} from '../table/types'
+
+export class FormulaField extends Wp {
+  static get observedAttributes(): Array<string> {
+    return ['current-text']
+  }
+
   public input: HTMLInputElement
   constructor() {
     super()
@@ -7,18 +15,32 @@ export class FormulaField extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.innerHTML = this.html
+    super.connectedCallback()
     this.input = this.querySelector('.input')
-    this.input.oninput = (evt: InputEvent) => this.dispatchEvent(evt)
-    this.input.onkeydown = (evt: KeyboardEvent) => this.dispatchEvent(evt)
+    this.input.oninput = (evt: IEvent) =>
+      this.store.dispatch(setCurrentText(evt.target.value))
+    this.onkeydown = (evt: KeyboardEvent) =>
+      this.formulaKeydownHandler(evt)
   }
 
-  get inputValue(): string {
-    return this.input.value
+  formulaKeydownHandler(evt: KeyboardEvent): void {
+    const keys = ['Enter', 'Tab']
+    if (keys.includes(evt.key)) {
+      evt.preventDefault()
+      this.store.state.currentCell.focus()
+    }
   }
 
-  set inputValue(value: string) {
-    this.input.value = value
+  get currentText(): string {
+    return this.getAttribute('current-text') || ''
+  }
+
+  set currentText(value: string) {
+    this.setAttribute('current-text', value)
+  }
+
+  attributeChangedCallback(): void {
+    if (this.input) this.input.value = this.currentText
   }
 
   get html(): string {

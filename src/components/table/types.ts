@@ -7,5 +7,6 @@ interface ITarget extends HTMLElement {
   dataset: {
     resize?: string,
     id?: string,
-  }
+  },
+  value?: string,
 }
