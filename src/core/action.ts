@@ -29,3 +29,7 @@ export const updateRowState = (data: Record<string, string>): TAction => ({
   type: 'UPDATE_ROW_STATE',
   payload: data,
 })
+
+export const resetCurrentStyles = (): TAction => ({
+  type: 'RESET_CURRENT_STYLES',
+})

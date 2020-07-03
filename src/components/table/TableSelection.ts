@@ -4,6 +4,7 @@ import {
   setCurrentCell,
   setCurrentText,
   setSelectedCells,
+  resetCurrentStyles,
 } from '../../core/action'
 
 export class TableSelection {
@@ -41,6 +42,7 @@ export class TableSelection {
   private clear(): void {
     this.store.state.selectedCells.forEach((element: HTMLElement) =>
       element.classList.remove(SELECTED_CELL_CLASSNAME))
+    this.store.dispatch(resetCurrentStyles())
   }
 
   private setSelected(element: Element): void {

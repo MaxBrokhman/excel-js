@@ -1,4 +1,5 @@
 import {StoreManager} from './StoreManager';
+import {LocalStorageManager} from './LocalStorageManager';
 
 export type TState = {
   rowState: Record<string, string>,
@@ -22,4 +23,4 @@ const initialState: TState = {
   currentCell: null,
 }
 
-export const store = new StoreManager(initialState);
+export const store = new StoreManager(initialState, new LocalStorageManager());
