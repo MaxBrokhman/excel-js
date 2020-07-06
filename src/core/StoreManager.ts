@@ -45,7 +45,10 @@ export class StoreManager {
       }
     })
     this._state = newState
-    this.storage.setValue('state', this.state)
+    this.storage.setValue('state', {
+      ...this.state,
+      selectedCells: [],
+    })
   }
 
   get state(): any {

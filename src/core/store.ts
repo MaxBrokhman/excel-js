@@ -12,6 +12,10 @@ export type TState = {
   currentCell: HTMLElement,
 }
 
+const localStorageManager = new LocalStorageManager()
+
+const persistedState: TState = localStorageManager.getValue('state')
+
 const initialState: TState = {
   rowState: {},
   colState: {},
@@ -23,4 +27,7 @@ const initialState: TState = {
   currentCell: null,
 }
 
-export const store = new StoreManager(initialState, new LocalStorageManager());
+export const store = new StoreManager(
+    persistedState || initialState,
+    localStorageManager,
+)

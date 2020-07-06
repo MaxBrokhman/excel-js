@@ -147,15 +147,23 @@ export class TableSection extends Wp {
   }
 
   private _renderCell(col: string, headerContent: number): string {
-    return `
-      <td 
-        class="cell" 
-        data-index="${headerContent}" 
-        data-col="${col}"
-        data-id="${headerContent}${this.idSeperator}${col}"
-        contenteditable
-      ></td>
-    `
+    const td = document.createElement('td')
+    td.className = 'cell'
+    td.dataset.index = `${headerContent}`
+    td.dataset.col = col
+    const cellId = `${headerContent}${this.idSeperator}${col}`
+    td.dataset.id = cellId
+    td.setAttribute('contenteditable', '')
+    const storedStyles = this.store.state.stylesState[cellId]
+    if (storedStyles) {
+      Object.keys(storedStyles).forEach((key) => {
+        td.style[(key as any)] = storedStyles[key]
+      })
+    }
+    if (this.store.state.colState[col]) {
+      td.style.width = this.store.state.colState[col]
+    }
+    return td.outerHTML
   }
 
   tableClickHandler(evt: IEvent): void {
@@ -227,7 +235,13 @@ export class TableSection extends Wp {
       ))
     }
     return `
-      <tr class="row" data-index="${headerContent}">
+      <tr 
+        class="row" 
+        data-index="${headerContent}"
+        ${this.store.state.rowState[headerContent]
+          ? `style="height: ${this.store.state.rowState[headerContent]}"`
+          : ''}
+      >
         <td 
           class="row-info table-header-cell"
           data-index="${headerContent}"
@@ -246,6 +260,9 @@ export class TableSection extends Wp {
         class="row-data table-header-cell" 
         data-type="resizable" 
         data-col="${headerCell}"
+        ${this.store.state.colState[headerCell]
+            ? `style="width: ${this.store.state.colState[headerCell]};"`
+            : '' }
       >
         ${headerCell}
         <div class="col-resize" data-resize="col"></div>
