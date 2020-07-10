@@ -18,6 +18,11 @@
     background: #eee;
     cursor: pointer;
   }
+
+  &.active {
+    background-color: #e6f4ea;
+    color: #188038;
+  }
 }
 
 @mixin clear-list() {
