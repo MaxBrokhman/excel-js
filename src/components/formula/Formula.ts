@@ -1,5 +1,5 @@
 import {Wp} from '../../core/Wp'
-import {setCurrentText} from '../../core/action'
+import {setCurrentText, updateContent} from '../../core/action'
 import {IEvent} from '../table/types'
 
 export class FormulaField extends Wp {
@@ -17,8 +17,14 @@ export class FormulaField extends Wp {
   connectedCallback(): void {
     super.connectedCallback()
     this.input = this.querySelector('.input')
-    this.input.oninput = (evt: IEvent) =>
+    this.input.oninput = (evt: IEvent) =>{
       this.store.dispatch(setCurrentText(evt.target.value))
+      this.store.state.selectedCells.forEach((cell: HTMLElement) => {
+        this.store.dispatch(updateContent({
+          [cell.dataset.id]: evt.target.value,
+        }))
+      })
+    }
     this.onkeydown = (evt: KeyboardEvent) =>
       this.formulaKeydownHandler(evt)
   }

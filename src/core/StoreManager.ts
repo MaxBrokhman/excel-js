@@ -122,6 +122,14 @@ export class StoreManager {
           },
         }
       }
+      case 'UPDATE_CONTENT':
+        return {
+          ...state,
+          dataState: {
+            ...state.dataState,
+            ...action.payload,
+          },
+        }
       case 'RESET_CURRENT_STYLES':
         return {
           ...state,

@@ -10,6 +10,7 @@ import {
   updateColState,
   updateRowState,
   setCurrentText,
+  updateContent,
 } from '../../core/action'
 import {
   parseCellId,
@@ -99,10 +100,13 @@ export class TableSection extends Wp {
     this.selection = new TableSelection(this.store)
     const firstCell: HTMLElement = this.querySelector('[data-id="1:A"]')
     this.selection.select(firstCell)
-    this.oninput = () =>
-      this.store.dispatch(setCurrentText(
-          this.store.state.currentCell.textContent)
-      )
+    this.oninput = () => {
+      const content = this.store.state.currentCell.textContent
+      this.store.dispatch(setCurrentText(content))
+      this.store.dispatch(updateContent({
+        [this.store.state.currentCell.dataset.id]: content,
+      }))
+    }
     this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
     this.onclick = (evt: IEvent) => this.tableClickHandler(evt)
     this.onmousedown = (evt: IEvent) => this.mousedownHandler(evt)
@@ -163,6 +167,7 @@ export class TableSection extends Wp {
     if (this.store.state.colState[col]) {
       td.style.width = this.store.state.colState[col]
     }
+    td.textContent = this.store.state.dataState[cellId] || ''
     return td.outerHTML
   }
 
