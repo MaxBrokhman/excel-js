@@ -16,11 +16,10 @@ export class TableSelection {
   }
 
   set currentStyles(styles: Record<string, string>) {
-    this.store.state.selectedCells.forEach((cell: any) => {
+    this.store.state.selectedCells.forEach((cell: any) =>
       Object.keys(styles).forEach((key) => {
         cell.style[key] = styles[key]
-      })
-    })
+      }))
   }
 
   select(element: HTMLElement): void {

@@ -1,6 +1,7 @@
 import {Wp} from './Wp'
 import {TState} from './store'
 import {LocalStorageManager} from './LocalStorageManager'
+import {defaultStyles} from '../components/table/config'
 
 export type TAction = {
   type: string,
@@ -133,7 +134,9 @@ export class StoreManager {
       case 'RESET_CURRENT_STYLES':
         return {
           ...state,
-          currentStyles: {},
+          currentStyles: {
+            ...defaultStyles,
+          },
         }
       default:
         return {...state}

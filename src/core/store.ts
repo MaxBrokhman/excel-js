@@ -1,5 +1,6 @@
 import {StoreManager} from './StoreManager';
 import {LocalStorageManager} from './LocalStorageManager';
+import {defaultStyles} from '../components/table/config';
 
 export type TState = {
   rowState: Record<string, string>,
@@ -22,7 +23,9 @@ const initialState: TState = {
   dataState: {},
   stylesState: {},
   currentText: '',
-  currentStyles: {},
+  currentStyles: {
+    ...defaultStyles,
+  },
   selectedCells: [],
   currentCell: null,
 }

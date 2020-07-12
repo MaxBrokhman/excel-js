@@ -23,6 +23,7 @@ import {
 import {IEvent} from './types'
 import {TableResizer} from '../../controllers/TableController/TableResizer'
 import {TableSelection} from './TableSelection'
+import {defaultStyles} from './config'
 
 export class TableSection extends Wp {
   static get observedAttributes(): Array<string> {
@@ -158,12 +159,10 @@ export class TableSection extends Wp {
     const cellId = `${headerContent}${this.idSeperator}${col}`
     td.dataset.id = cellId
     td.setAttribute('contenteditable', '')
-    const storedStyles = this.store.state.stylesState[cellId]
-    if (storedStyles) {
-      Object.keys(storedStyles).forEach((key) => {
-        td.style[(key as any)] = storedStyles[key]
-      })
-    }
+    const storedStyles = this.store.state.stylesState[cellId] || defaultStyles
+    Object.keys(storedStyles).forEach((key) => {
+      td.style[(key as any)] = storedStyles[key]
+    })
     if (this.store.state.colState[col]) {
       td.style.width = this.store.state.colState[col]
     }

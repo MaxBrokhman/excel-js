@@ -1,6 +1,7 @@
 import {Wp} from '../../core/Wp'
 import {updateCurrentStyles} from '../../core/action'
 import {buttons} from './config'
+import {defaultStyles} from '../table/config'
 
 export type TButton = {
   icon: string,
@@ -52,16 +53,15 @@ class ToolbarSection extends Wp {
     this.buttons.forEach((btn) => btn.classList.remove('active'))
     if (cell.dataset && cell.dataset.id) {
       const styles = this.store.state.stylesState[cell.dataset.id]
-      if (styles) {
-        Object.keys(styles).forEach((style) => {
-          const btn = this.buttons.find((btn) => {
-            const btnData = JSON.parse(btn.dataset.data)
-            return btnData[style] &&
-            btnData[style] === styles[style]
-          })
-          btn && btn.classList.add('active')
+        || defaultStyles
+      Object.keys(styles).forEach((style) => {
+        const btn = this.buttons.find((btn) => {
+          const btnData = JSON.parse(btn.dataset.data)
+          return btnData[style] &&
+          btnData[style] === styles[style]
         })
-      }
+        btn && btn.classList.add('active')
+      })
     }
   }
 
