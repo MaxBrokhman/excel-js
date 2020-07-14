@@ -138,6 +138,11 @@ export class StoreManager {
             ...defaultStyles,
           },
         }
+      case 'SET_TABLE_NAME':
+        return {
+          ...state,
+          tableName: action.payload,
+        }
       default:
         return {...state}
     }

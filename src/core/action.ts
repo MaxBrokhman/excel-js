@@ -34,7 +34,12 @@ export const resetCurrentStyles = (): TAction => ({
   type: 'RESET_CURRENT_STYLES',
 })
 
-export const updateContent = (data: Record<string, string>) => ({
+export const updateContent = (data: Record<string, string>): TAction => ({
   type: 'UPDATE_CONTENT',
+  payload: data,
+})
+
+export const setTableName = (data: string): TAction => ({
+  type: 'SET_TABLE_NAME',
   payload: data,
 })

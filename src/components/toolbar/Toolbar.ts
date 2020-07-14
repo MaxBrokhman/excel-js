@@ -51,7 +51,7 @@ class ToolbarSection extends Wp {
 
   set currentCell(cell: HTMLElement) {
     this.buttons.forEach((btn) => btn.classList.remove('active'))
-    if (cell.dataset && cell.dataset.id) {
+    if (cell && cell.dataset && cell.dataset.id) {
       const styles = this.store.state.stylesState[cell.dataset.id]
         || defaultStyles
       Object.keys(styles).forEach((style) => {
