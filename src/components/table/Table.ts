@@ -24,6 +24,7 @@ import {IEvent} from './types'
 import {TableResizer} from '../../controllers/TableController/TableResizer'
 import {TableSelection} from './TableSelection'
 import {defaultStyles} from './config'
+import {TCurrentText} from '../../core/store'
 
 export class TableSection extends Wp {
   static get observedAttributes(): Array<string> {
@@ -36,9 +37,11 @@ export class TableSection extends Wp {
   private readonly idSeperator: string = ID_SEPARATOR
   private readonly maxCharCode: number = MAX_CHAR_CODE
   private readonly minCharCode: number = MIN_CHAR_CODE
+  private _currentText: TCurrentText
   constructor() {
     super()
     this.className = 'excel-table'
+    this._currentText = {}
   }
 
   get html(): string {
@@ -64,12 +67,17 @@ export class TableSection extends Wp {
     this.setAttribute('row-state', JSON.stringify(data))
   }
 
-  get currentText(): string {
-    return this.getAttribute('current-text')
+  get currentText(): TCurrentText {
+    return this._currentText
   }
 
-  set currentText(value: string) {
-    this.setAttribute('current-text', value)
+  set currentText(value: TCurrentText) {
+    if (value.value !== this._currentText.value) {
+      this.store.state.selectedCells.forEach((cell: HTMLElement) => {
+        cell.textContent = value.value
+      })
+      this._currentText = value
+    }
   }
 
   attributeChangedCallback(
@@ -87,11 +95,6 @@ export class TableSection extends Wp {
           Object.keys(this.rowState).forEach((key) =>
             this.updateColumnWidth(key, this.rowState[key]))
           break
-        case 'current-text':
-          this.store.state.selectedCells.forEach((cell: HTMLElement) => {
-            cell.textContent = newValue
-          })
-          break
       }
     }
   }
@@ -104,9 +107,9 @@ export class TableSection extends Wp {
     this.oninput = () => {
       const content = this.store.state.currentCell.textContent
       this.store.dispatch(setCurrentText(content))
-      this.store.dispatch(updateContent({
-        [this.store.state.currentCell.dataset.id]: content,
-      }))
+      this.store.dispatch(
+          updateContent(this.store.state.currentCell.dataset.id, content)
+      )
     }
     this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
     this.onclick = (evt: IEvent) => this.tableClickHandler(evt)
@@ -166,7 +169,11 @@ export class TableSection extends Wp {
     if (this.store.state.colState[col]) {
       td.style.width = this.store.state.colState[col]
     }
-    td.textContent = this.store.state.dataState[cellId] || ''
+    const storedContent = this.store.state.dataState[cellId]
+    console.log(storedContent)
+    td.textContent = storedContent
+      ? storedContent.parsed
+      : ''
     return td.outerHTML
   }
 

@@ -2,6 +2,7 @@ import {Wp} from './Wp'
 import {TState} from './store'
 import {LocalStorageManager} from './LocalStorageManager'
 import {defaultStyles} from '../components/table/config'
+import {debounce} from '../utils/debounce'
 
 export type TAction = {
   type: string,
@@ -17,6 +18,7 @@ export class StoreManager {
     this.listeners = {}
     this.storage = storage
     this.dispatch = this.dispatch.bind(this)
+    this.saveInStorage = debounce(this.saveInStorage.bind(this), 300)
   }
 
   subscribe(event: string, listener: any): void {
@@ -36,6 +38,13 @@ export class StoreManager {
     }
   }
 
+  saveInStorage(state: TState) {
+    this.storage.setValue('state', {
+      ...state,
+      selectedCells: [],
+    })
+  }
+
   set state(newState: any) {
     Object.keys(this.state).forEach((key) => {
       if (this.state[key] !== newState[key]) {
@@ -46,10 +55,7 @@ export class StoreManager {
       }
     })
     this._state = newState
-    this.storage.setValue('state', {
-      ...this.state,
-      selectedCells: [],
-    })
+    this.saveInStorage(this.state)
   }
 
   get state(): any {
@@ -76,7 +82,7 @@ export class StoreManager {
       case 'SET_CURRENT_TEXT': {
         return {
           ...state,
-          currentText: action.payload,
+          currentText: {...action.payload},
         }
       }
       case 'UPDATE_COL_STATE': {

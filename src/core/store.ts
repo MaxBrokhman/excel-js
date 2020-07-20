@@ -3,13 +3,18 @@ import {LocalStorageManager} from './LocalStorageManager';
 import {defaultStyles} from '../components/table/config';
 import {defaultTableName} from './config';
 
+export type TCurrentText = {
+  value?: string,
+  parsed?: string,
+}
+
 export type TState = {
   tableName: string,
   rowState: Record<string, string>,
   colState: Record<string, string>,
   dataState: Record<string, string>,
   stylesState: Record<string, string>,
-  currentText: string,
+  currentText: TCurrentText,
   currentStyles: Record<string, string>,
   selectedCells: Array<HTMLElement>,
   currentCell: HTMLElement,
@@ -25,7 +30,10 @@ const initialState: TState = {
   colState: {},
   dataState: {},
   stylesState: {},
-  currentText: '',
+  currentText: {
+    value: '',
+    parsed: '',
+  },
   currentStyles: {
     ...defaultStyles,
   },

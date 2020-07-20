@@ -1,8 +1,10 @@
 import {Wp} from '../../core/Wp'
 import {setCurrentText, updateContent} from '../../core/action'
 import {IEvent} from '../table/types'
+import {TCurrentText} from '../../core/store'
 
 export class FormulaField extends Wp {
+  private _currentText: TCurrentText
   static get observedAttributes(): Array<string> {
     return ['current-text']
   }
@@ -17,16 +19,8 @@ export class FormulaField extends Wp {
   connectedCallback(): void {
     super.connectedCallback()
     this.input = this.querySelector('.input')
-    this.input.oninput = (evt: IEvent) =>{
-      this.store.dispatch(setCurrentText(evt.target.value))
-      this.store.state.selectedCells.forEach((cell: HTMLElement) => {
-        this.store.dispatch(updateContent({
-          [cell.dataset.id]: evt.target.value,
-        }))
-      })
-    }
-    this.onkeydown = (evt: KeyboardEvent) =>
-      this.formulaKeydownHandler(evt)
+    this.input.oninput = (evt: IEvent) => this.inputHandler(evt)
+    this.onkeydown = (evt: KeyboardEvent) => this.formulaKeydownHandler(evt)
   }
 
   formulaKeydownHandler(evt: KeyboardEvent): void {
@@ -37,16 +31,24 @@ export class FormulaField extends Wp {
     }
   }
 
-  get currentText(): string {
-    return this.getAttribute('current-text') || ''
+  inputHandler(evt: IEvent): void {
+    this.store.dispatch(setCurrentText(evt.target.value))
+    this.store.state.selectedCells.forEach((cell: HTMLElement) => {
+      this.store.dispatch(
+          updateContent(cell.dataset.id, evt.target.value)
+      )
+    })
   }
 
-  set currentText(value: string) {
-    this.setAttribute('current-text', value)
+  get currentText(): TCurrentText {
+    return this._currentText
   }
 
-  attributeChangedCallback(): void {
-    if (this.input) this.input.value = this.currentText
+  set currentText(value: TCurrentText) {
+    if (this.input) {
+      this.input.value = value.value
+    }
+    this._currentText = value
   }
 
   get html(): string {

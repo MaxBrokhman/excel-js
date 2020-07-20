@@ -23,13 +23,17 @@ export class TableSelection {
   }
 
   select(element: HTMLElement): void {
+    if (this.current === element) return
     this.clear()
     this.store.dispatch(setSelectedCells([element]))
     this.current = element
     this.setSelected(element)
     this.store.dispatch(setCurrentCell(element))
     element.focus()
-    this.store.dispatch(setCurrentText(element.textContent))
+    const storedContent = this.store.state.dataState[element.dataset.id]
+    this.store.dispatch(
+        setCurrentText(storedContent ? storedContent.value : '')
+    )
   }
 
   selectGroup(group: Array<HTMLElement>): void {
@@ -39,8 +43,11 @@ export class TableSelection {
   }
 
   private clear(): void {
-    this.store.state.selectedCells.forEach((element: HTMLElement) =>
-      element.classList && element.classList.remove(SELECTED_CELL_CLASSNAME))
+    this.store.state.selectedCells.forEach((element: HTMLElement) => {
+      element.classList && element.classList.remove(SELECTED_CELL_CLASSNAME)
+      console.log('all cleared', this.store.state.currentText)
+      element.textContent = this.store.state.currentText.parsed
+    })
     this.store.dispatch(resetCurrentStyles())
   }
 

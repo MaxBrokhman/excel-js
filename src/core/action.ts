@@ -1,4 +1,5 @@
 import {TAction} from './StoreManager';
+import {parseValue} from '../utils/parseValue';
 
 export const setCurrentCell = (cell: HTMLElement): TAction => ({
   type: 'SET_CURRENT_CELL',
@@ -10,9 +11,12 @@ export const setSelectedCells = (cells: Array<HTMLElement>): TAction => ({
   payload: cells,
 })
 
-export const setCurrentText = (text: string): TAction => ({
+export const setCurrentText = (value: string): TAction => ({
   type: 'SET_CURRENT_TEXT',
-  payload: text,
+  payload: {
+    value,
+    parsed: parseValue(value),
+  },
 })
 
 export const updateCurrentStyles = (data: Record<string, string>): TAction => ({
@@ -34,9 +38,14 @@ export const resetCurrentStyles = (): TAction => ({
   type: 'RESET_CURRENT_STYLES',
 })
 
-export const updateContent = (data: Record<string, string>): TAction => ({
+export const updateContent = (id: string, value: string): TAction => ({
   type: 'UPDATE_CONTENT',
-  payload: data,
+  payload: {
+    [id]: {
+      value,
+      parsed: parseValue(value),
+    },
+  },
 })
 
 export const setTableName = (data: string): TAction => ({
