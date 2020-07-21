@@ -45,7 +45,6 @@ export class TableSelection {
   private clear(): void {
     this.store.state.selectedCells.forEach((element: HTMLElement) => {
       element.classList && element.classList.remove(SELECTED_CELL_CLASSNAME)
-      console.log('all cleared', this.store.state.currentText)
       element.textContent = this.store.state.currentText.parsed
     })
     this.store.dispatch(resetCurrentStyles())

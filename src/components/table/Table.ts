@@ -170,7 +170,6 @@ export class TableSection extends Wp {
       td.style.width = this.store.state.colState[col]
     }
     const storedContent = this.store.state.dataState[cellId]
-    console.log(storedContent)
     td.textContent = storedContent
       ? storedContent.parsed
       : ''
