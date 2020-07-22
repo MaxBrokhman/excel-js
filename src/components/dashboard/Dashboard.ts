@@ -44,7 +44,9 @@ class Dashboard extends Wp {
           ${this.tableRecords
           .map((key) => `
               <li class="dashboard__record">
-                <a href="#excel/${key}">${key}</a>
+                <a href="#excel/${key}">
+                  ${localStorageManager.getTableRecord(key).tableName}
+                </a>
                 <strong>12.06.2020</strong>
               </li>
               `)

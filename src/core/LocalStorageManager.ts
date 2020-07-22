@@ -29,10 +29,12 @@ export class LocalStorageManager {
     )
   }
 
-  getTableRecord(): any {
-    return JSON.parse(
-        localStorage.getItem(`${this.tablePrefix}${this.currentTableId}`)
-    )
+  getTableRecord(key?: string): any {
+    return key
+      ? JSON.parse(localStorage.getItem(`${this.tablePrefix}${key}`))
+      : JSON.parse(
+          localStorage.getItem(`${this.tablePrefix}${this.currentTableId}`)
+      )
   }
 
   getAllTableRecords(): Array<string> {
