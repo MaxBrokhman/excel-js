@@ -6,14 +6,7 @@ import './components/formula/Formula'
 import './components/header/Header'
 import './components/toolbar/Toolbar'
 import './components/table/Table'
-import {Router} from './core/Router'
-import {DashboardPage} from './pages/DashboardPage'
-import {ExcelPage} from './pages/ExcelPage'
+import './components/dashboard/Dashboard'
 
-new Router('#app', {
-  dashboard: DashboardPage,
-  excel: ExcelPage,
-})
-
-const app = new App([])
+export const app = new App([])
 app.init()

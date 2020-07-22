@@ -17,6 +17,7 @@ export class StoreManager {
     this._state = initialState;
     this.listeners = {}
     this.storage = storage
+
     this.dispatch = this.dispatch.bind(this)
     this.saveInStorage = debounce(this.saveInStorage.bind(this), 300)
   }
@@ -39,7 +40,7 @@ export class StoreManager {
   }
 
   saveInStorage(state: TState) {
-    this.storage.setValue('state', {
+    this.storage.setTableRecord({
       ...state,
       selectedCells: [],
     })

@@ -2,6 +2,6 @@ import {Page} from '../core/Page';
 
 export class DashboardPage extends Page {
   getRoot(): string {
-    return ''
+    return '<dash-board></dash-board>'
   }
 }

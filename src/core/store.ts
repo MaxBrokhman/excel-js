@@ -1,5 +1,3 @@
-import {StoreManager} from './StoreManager';
-import {LocalStorageManager} from './LocalStorageManager';
 import {defaultStyles} from '../components/table/config';
 import {defaultTableName} from './config';
 
@@ -20,11 +18,7 @@ export type TState = {
   currentCell: HTMLElement,
 }
 
-const localStorageManager = new LocalStorageManager()
-
-const persistedState: TState = localStorageManager.getValue('state')
-
-const initialState: TState = {
+export const initialState: TState = {
   rowState: {},
   tableName: defaultTableName,
   colState: {},
@@ -40,8 +34,3 @@ const initialState: TState = {
   selectedCells: [],
   currentCell: null,
 }
-
-export const store = new StoreManager(
-    persistedState || initialState,
-    localStorageManager,
-)

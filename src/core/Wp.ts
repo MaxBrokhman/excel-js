@@ -1,4 +1,5 @@
-import {store} from './store'
+import {app} from '../index'
+
 
 export abstract class Wp extends HTMLElement {
   static get observedAttributes(): Array<string> {
@@ -7,7 +8,7 @@ export abstract class Wp extends HTMLElement {
   public store: any
   constructor() {
     super()
-    this.store = store
+    this.store = app.store
   }
 
   /* converting all of the observed attributes
