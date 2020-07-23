@@ -52,6 +52,10 @@ export class LocalStorageManager {
   parseTableId(str: string): string {
     return str.replace(this.tablePrefix, '')
   }
+
+  removeCurrentTable(): void {
+    localStorage.removeItem(`${this.tablePrefix}${this.currentTableId}`)
+  }
 }
 
 export const localStorageManager = new LocalStorageManager()

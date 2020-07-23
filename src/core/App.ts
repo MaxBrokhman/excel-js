@@ -11,9 +11,9 @@ interface IController {
 
 export class App {
   private controllers: Array<IController>
-  private router: Router
+  public router: Router
   private root: HTMLElement
-  public store: any
+  public store: StoreManager
   constructor(controllers: Array<IController>) {
     this.controllers = controllers
     this.router = new Router({

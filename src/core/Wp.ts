@@ -1,14 +1,18 @@
 import {app} from '../index'
+import {Router} from './Router'
+import {StoreManager} from './StoreManager'
 
 
 export abstract class Wp extends HTMLElement {
   static get observedAttributes(): Array<string> {
     return []
   }
-  public store: any
+  public store: StoreManager
+  public router: Router
   constructor() {
     super()
     this.store = app.store
+    this.router = app.router
   }
 
   /* converting all of the observed attributes

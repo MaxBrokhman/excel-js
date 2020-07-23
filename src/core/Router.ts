@@ -24,4 +24,8 @@ export class Router {
     const DefaultPage = this.routes.dashboard
     return new DefaultPage().getRoot()
   }
+
+  navigateToMain(): void {
+    window.location.hash = ''
+  }
 }
