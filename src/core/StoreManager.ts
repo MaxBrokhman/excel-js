@@ -150,6 +150,11 @@ export class StoreManager {
           ...state,
           tableName: action.payload,
         }
+      case 'UPDATE_OPEN_DATE':
+        return {
+          ...state,
+          openDate: new Date().toJSON(),
+        }
       default:
         return {...state}
     }

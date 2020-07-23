@@ -42,14 +42,21 @@ class Dashboard extends Wp {
         
         <ul class="dashboard__list">
           ${this.tableRecords
-          .map((key) => `
+          .map((key) => {
+            const record = localStorageManager.getTableRecord(key)
+
+            return `
               <li class="dashboard__record">
                 <a href="#excel/${key}">
-                  ${localStorageManager.getTableRecord(key).tableName}
+                  ${record.tableName}
                 </a>
-                <strong>12.06.2020</strong>
+                <strong>
+                  ${new Date(record.openDate).toLocaleDateString()}
+                  ${new Date(record.openDate).toLocaleTimeString()}
+                </strong>
               </li>
-              `)
+              `
+          })
           .join('')}
         </ul>
       `

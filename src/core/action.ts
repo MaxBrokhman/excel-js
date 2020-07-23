@@ -52,3 +52,7 @@ export const setTableName = (data: string): TAction => ({
   type: 'SET_TABLE_NAME',
   payload: data,
 })
+
+export const updateOpenDate = (): TAction => ({
+  type: 'UPDATE_OPEN_DATE',
+})

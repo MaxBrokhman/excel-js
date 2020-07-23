@@ -11,6 +11,7 @@ import {
   updateRowState,
   setCurrentText,
   updateContent,
+  updateOpenDate,
 } from '../../core/action'
 import {
   parseCellId,
@@ -114,6 +115,7 @@ export class TableSection extends Wp {
     this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
     this.onclick = (evt: IEvent) => this.tableClickHandler(evt)
     this.onmousedown = (evt: IEvent) => this.mousedownHandler(evt)
+    this.store.dispatch(updateOpenDate())
   }
 
   keydownHandler(evt: KeyboardEvent): void {

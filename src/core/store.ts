@@ -16,6 +16,7 @@ export type TState = {
   currentStyles: Record<string, string>,
   selectedCells: Array<HTMLElement>,
   currentCell: HTMLElement,
+  openDate: string,
 }
 
 export const initialState: TState = {
@@ -33,4 +34,5 @@ export const initialState: TState = {
   },
   selectedCells: [],
   currentCell: null,
+  openDate: new Date().toJSON(),
 }
