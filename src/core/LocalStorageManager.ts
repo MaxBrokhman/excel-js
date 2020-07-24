@@ -1,4 +1,4 @@
-export type TValue = any
+import {TState} from './store'
 
 export class LocalStorageManager {
   private prefix: string = window.location.href
@@ -13,23 +13,23 @@ export class LocalStorageManager {
     return this._currentTableId
   }
 
-  setValue(key: string, value: TValue): void {
+  setValue<T>(key: string, value: T): void {
     localStorage.setItem(`${this.prefix}_${key}`, JSON.stringify(value))
   }
 
-  getValue(key: string): TValue {
+  getValue<T>(key: string): T {
     const value = localStorage.getItem(`${this.prefix}_${key}`)
     return value && JSON.parse(value)
   }
 
-  setTableRecord(value: any): void {
+  setTableRecord(value: TState): void {
     localStorage.setItem(
         `${this.tablePrefix}${this.currentTableId}`,
         JSON.stringify(value),
     )
   }
 
-  getTableRecord(key?: string): any {
+  getTableRecord(key?: string): TState {
     return key
       ? JSON.parse(localStorage.getItem(`${this.tablePrefix}${key}`))
       : JSON.parse(

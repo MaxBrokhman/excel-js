@@ -4,7 +4,8 @@
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "start": "webpack-dev-server --open",
     "build": "webpack --mode production"
   },
@@ -24,6 +25,7 @@
     "eslint-config-google": "^0.14.0",
     "eslint-loader": "^4.0.2",
     "html-webpack-plugin": "^4.3.0",
+    "jest": "^26.1.0",
     "mini-css-extract-plugin": "^0.9.0",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
@@ -37,6 +39,9 @@
   },
   "browserslist": "> 0.25%, not dead",
   "dependencies": {
+    "@types/jest": "^26.0.5",
+    "@types/lodash": "^4.14.158",
+    "lodash": "^4.17.19",
     "normalize.css": "^8.0.1"
   }
 }

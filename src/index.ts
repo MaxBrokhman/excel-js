@@ -8,5 +8,5 @@ import './components/toolbar/Toolbar'
 import './components/table/Table'
 import './components/dashboard/Dashboard'
 
-export const app = new App([])
+export const app = new App()
 app.init()

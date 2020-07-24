@@ -1,6 +1,7 @@
 import {app} from '../index'
 import {Router} from './Router'
 import {StoreManager} from './StoreManager'
+import {TState} from './store'
 
 
 export abstract class Wp extends HTMLElement {
@@ -18,7 +19,7 @@ export abstract class Wp extends HTMLElement {
   /* converting all of the observed attributes
   of the component to properties of state*/
   get observedProps(): Array<string> {
-    const observed = (this.constructor as any).observedAttributes
+    const observed = (this.constructor as typeof Wp).observedAttributes
     if (!observed) return []
     return observed.map((item: string) => {
       const propArr = item.split('-')
@@ -39,7 +40,7 @@ export abstract class Wp extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.observedProps.forEach((prop) => {
+    this.observedProps.forEach((prop: keyof TState) => {
       this.store.subscribe(prop, this);
     })
     this.render()

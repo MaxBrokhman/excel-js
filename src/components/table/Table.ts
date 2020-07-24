@@ -1,10 +1,13 @@
+import set from 'lodash/set'
+
 import {
   ID_SEPARATOR,
   MIN_CHAR_CODE,
   MAX_CHAR_CODE,
   COL_PARENT_PROP_DYNAMIC,
   ROW_PARENT_PROP_DYNAMIC,
-} from '../../controllers/TableController/config'
+  SELECTED_CELL_CLASSNAME,
+} from '../../core/TableResizer/config'
 import {Wp} from '../../core/Wp'
 import {
   updateColState,
@@ -12,6 +15,9 @@ import {
   setCurrentText,
   updateContent,
   updateOpenDate,
+  setCurrentCell,
+  setSelectedCells,
+  resetCurrentStyles,
 } from '../../core/action'
 import {
   parseCellId,
@@ -20,10 +26,9 @@ import {
   getRangeFromLetters,
   getRangeFromNumbers,
   updateStyleProp,
-} from '../../controllers/TableController/utils'
+} from '../../core/TableResizer/utils'
 import {IEvent} from './types'
-import {TableResizer} from '../../controllers/TableController/TableResizer'
-import {TableSelection} from './TableSelection'
+import {TableResizer} from '../../core/TableResizer/TableResizer'
 import {defaultStyles} from './config'
 import {TCurrentText} from '../../core/store'
 
@@ -33,12 +38,12 @@ export class TableSection extends Wp {
   }
 
   private tableResizer: TableResizer
-  private selection: TableSelection
   private readonly rowsCount: number = 15
   private readonly idSeperator: string = ID_SEPARATOR
   private readonly maxCharCode: number = MAX_CHAR_CODE
   private readonly minCharCode: number = MIN_CHAR_CODE
   private _currentText: TCurrentText
+  public current: HTMLElement = null
   constructor() {
     super()
     this.className = 'excel-table'
@@ -50,6 +55,43 @@ export class TableSection extends Wp {
       <h2 class="visually-hidden">Excel table</h2>
       ${this._renderTable()}
     `
+  }
+
+  set currentStyles(styles: Record<string, string>) {
+    this.store.state.selectedCells.forEach((cell) =>
+      Object.keys(styles).forEach((key) => set(cell.style, key, styles[key])))
+  }
+
+  select(element: HTMLElement): void {
+    if (this.current === element) return
+    this.clear()
+    this.store.dispatch(setSelectedCells([element]))
+    this.current = element
+    this.setSelected(element)
+    this.store.dispatch(setCurrentCell(element))
+    element.focus()
+    const storedContent = this.store.state.dataState[element.dataset.id]
+    this.store.dispatch(
+        setCurrentText(storedContent ? storedContent.value : '')
+    )
+  }
+
+  selectGroup(group: Array<HTMLElement>): void {
+    this.clear()
+    this.store.dispatch(setSelectedCells(group))
+    group.forEach((element) => this.setSelected(element))
+  }
+
+  private clear(): void {
+    this.store.state.selectedCells.forEach((element: HTMLElement) => {
+      element.classList && element.classList.remove(SELECTED_CELL_CLASSNAME)
+      element.textContent = this.store.state.currentText.parsed
+    })
+    this.store.dispatch(resetCurrentStyles())
+  }
+
+  private setSelected(element: Element): void {
+    element?.classList.add(SELECTED_CELL_CLASSNAME)
   }
 
   get colState(): Record<string, string> {
@@ -102,9 +144,8 @@ export class TableSection extends Wp {
 
   connectedCallback(): void {
     super.connectedCallback()
-    this.selection = new TableSelection(this.store)
     const firstCell: HTMLElement = this.querySelector('[data-id="1:A"]')
-    this.selection.select(firstCell)
+    this.select(firstCell)
     this.oninput = () => {
       const content = this.store.state.currentCell.textContent
       this.store.dispatch(setCurrentText(content))
@@ -135,7 +176,7 @@ export class TableSection extends Wp {
           `[data-id="${newCellId}"]`
       )
       if (nextCell) {
-        this.selection.select(nextCell)
+        this.select(nextCell)
       }
     }
   }
@@ -166,7 +207,7 @@ export class TableSection extends Wp {
     td.setAttribute('contenteditable', '')
     const storedStyles = this.store.state.stylesState[cellId] || defaultStyles
     Object.keys(storedStyles).forEach((key) => {
-      td.style[(key as any)] = storedStyles[key]
+      set(td.style, key, storedStyles[key])
     })
     if (this.store.state.colState[col]) {
       td.style.width = this.store.state.colState[col]
@@ -194,9 +235,9 @@ export class TableSection extends Wp {
         }, [])
         const selectedCells: Array<HTMLElement> = ids.map((id) =>
           this.querySelector(`[data-id="${id}"]`))
-        this.selection.selectGroup(selectedCells)
+        this.selectGroup(selectedCells)
       } else {
-        this.selection.select(evt.target)
+        this.select(evt.target)
       }
     }
   }

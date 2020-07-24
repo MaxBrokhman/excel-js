@@ -1,6 +1,6 @@
 export class Router {
-  public routes: Record<string, any>
-  constructor(routes: Record<string, any>) {
+  public routes: Record<string, string>
+  constructor(routes: Record<string, string>) {
     this.routes = routes
   }
 
@@ -17,12 +17,8 @@ export class Router {
   }
 
   get activeRoute(): string {
-    const NewPage = this.routes[this.location]
-    if (NewPage) {
-      return new NewPage().getRoot()
-    }
-    const DefaultPage = this.routes.dashboard
-    return new DefaultPage().getRoot()
+    const page = this.routes[this.location]
+    return page || this.routes.dashboard
   }
 
   navigateToMain(): void {

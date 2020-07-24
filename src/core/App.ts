@@ -1,31 +1,22 @@
 import {localStorageManager} from './LocalStorageManager'
-import {initialState} from './store'
+import {initialState, TState} from './store'
 import {StoreManager} from './StoreManager'
 import {Router} from './Router'
-import {DashboardPage} from '../pages/DashboardPage'
-import {ExcelPage} from '../pages/ExcelPage'
-
-interface IController {
-  init: () => void,
-}
 
 export class App {
-  private controllers: Array<IController>
   public router: Router
   private root: HTMLElement
   public store: StoreManager
-  constructor(controllers: Array<IController>) {
-    this.controllers = controllers
+  constructor() {
     this.router = new Router({
-      dashboard: DashboardPage,
-      excel: ExcelPage,
+      dashboard: '<dash-board></dash-board>',
+      excel: `<excel-table></excel-table>`,
     })
     this.root = document.querySelector('#app')
     this.changePageHandler = this.changePageHandler.bind(this)
   }
 
   public init(): void {
-    this.controllers.forEach((controller) => controller.init())
     window.addEventListener('hashchange', this.changePageHandler)
     this.changePageHandler()
   }
@@ -35,7 +26,7 @@ export class App {
     this.root.innerHTML = this.router.activeRoute
   }
 
-  initState(table: string): any {
+  initState(table: string): TState {
     localStorageManager.currentTableId = table
     const storedState = localStorageManager.getTableRecord()
     return storedState || initialState
