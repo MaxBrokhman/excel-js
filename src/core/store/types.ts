@@ -1,3 +1,12 @@
+import {Wp} from '../Wp'
+
+export type TAction = {
+  type: string,
+  payload?: TState[keyof TState],
+}
+
+export type TListener = Wp
+
 export type TCurrentText = {
   value?: string,
   parsed?: string,

@@ -7,7 +7,7 @@ import {
   TDeepObj,
   TDataState,
 } from './types'
-import {TAction} from './StoreManager'
+import {TAction} from './types'
 
 export const reducer = (
     state: TState,

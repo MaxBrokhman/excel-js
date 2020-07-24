@@ -1,4 +1,4 @@
-import {TAction} from './StoreManager'
+import {TAction} from './types'
 import {parseValue} from '../../utils/parseValue'
 import {defaultStyles} from '../../components/table/config'
 

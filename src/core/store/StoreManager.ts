@@ -3,17 +3,13 @@ import get from 'lodash/get'
 import debounce from 'lodash/debounce'
 import keys from 'lodash/keys'
 
-import {Wp} from '../Wp'
-import {TState} from './types'
+import {
+  TState,
+  TListener,
+  TAction,
+} from './types'
 import {LocalStorageManager} from '../LocalStorageManager'
 import {reducer} from './reducer'
-
-export type TAction = {
-  type: string,
-  payload?: TState[keyof TState],
-}
-
-type TListener = Wp
 
 export class StoreManager {
   private _state: TState
