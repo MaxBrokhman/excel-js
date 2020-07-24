@@ -1,5 +1,9 @@
+import map from 'lodash/map'
+import keys from 'lodash/keys'
+import get from 'lodash/get'
+
 import {Wp} from '../../core/Wp'
-import {updateCurrentStyles} from '../../core/action'
+import {updateCurrentStyles} from '../../core/store/actions'
 import {buttons} from './config'
 import {defaultStyles} from '../table/config'
 
@@ -12,7 +16,7 @@ export type TButton = {
 class ToolbarSection extends Wp {
   private buttons: Array<HTMLElement>
   static get observedAttributes(): Array<string> {
-    return ['current-cell']
+    return ['current-cell', 'current-styles']
   }
 
   constructor() {
@@ -23,7 +27,7 @@ class ToolbarSection extends Wp {
 
   connectedCallback(): void {
     super.connectedCallback()
-    this.buttons = buttons.map((button) => {
+    this.buttons = map(buttons, (button) => {
       const toolbarButton = this.createButton(button)
       toolbarButton.dataset.data = JSON.stringify(button.data)
       toolbarButton.onclick = () => {
@@ -50,25 +54,33 @@ class ToolbarSection extends Wp {
   }
 
   set currentCell(cell: HTMLElement) {
-    this.buttons.forEach((btn) => btn.classList.remove('active'))
-    if (cell && cell.dataset && cell.dataset.id) {
-      const styles = this.store.state.stylesState[cell.dataset.id]
-        || defaultStyles
-      Object.keys(styles).forEach((style) => {
-        const btn = this.buttons.find((btn) => {
-          const btnData = JSON.parse(btn.dataset.data)
-          return btnData[style] &&
-          btnData[style] === styles[style]
-        })
-        btn && btn.classList.add('active')
-      })
-    }
+    this.updateButtons(cell)
+  }
+
+  set currentStyles(value: Record<string, string>) {
+    this.updateButtons(this.store.state.currentCell)
   }
 
   private toggleActive(elem: HTMLElement): void {
     elem.classList.contains('active')
       ? elem.classList.remove('active')
       : elem.classList.add('active')
+  }
+
+  private updateButtons(cell: HTMLElement): void {
+    this.buttons.forEach((btn) => btn.classList.remove('active'))
+    const id = get(cell, ['dataset', 'id'])
+    if (id) {
+      const styles = get(this.store.state.stylesState, id, defaultStyles)
+      keys(styles).forEach((style) => {
+        const btn = this.buttons.find((btn) => {
+          const btnData = JSON.parse(btn.dataset.data)
+          return get(btnData, style)
+            && get(btnData, style) === get(styles, style)
+        })
+        btn && btn.classList.add('active')
+      })
+    }
   }
 }
 

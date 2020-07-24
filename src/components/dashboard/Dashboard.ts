@@ -1,3 +1,5 @@
+import map from 'lodash/map'
+
 import {Wp} from '../../core/Wp';
 import {localStorageManager} from '../../core/LocalStorageManager';
 
@@ -41,22 +43,21 @@ class Dashboard extends Wp {
         </div>
         
         <ul class="dashboard__list">
-          ${this.tableRecords
-          .map((key) => {
-            const record = localStorageManager.getTableRecord(key)
+        ${map(this.tableRecords, (key) => {
+        const record = localStorageManager.getTableRecord(key)
 
-            return `
-              <li class="dashboard__record">
-                <a href="#excel/${key}">
-                  ${record.tableName}
-                </a>
-                <strong>
-                  ${new Date(record.openDate).toLocaleDateString()}
-                  ${new Date(record.openDate).toLocaleTimeString()}
-                </strong>
-              </li>
-              `
-          })
+        return `
+          <li class="dashboard__record">
+            <a href="#excel/${key}">
+              ${record.tableName}
+            </a>
+            <strong>
+              ${new Date(record.openDate).toLocaleDateString()}
+              ${new Date(record.openDate).toLocaleTimeString()}
+            </strong>
+          </li>
+          `
+      })
           .join('')}
         </ul>
       `

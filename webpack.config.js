@@ -2,7 +2,6 @@ const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const webpack = require('webpack')
 
 module.exports = {
   context: path.resolve(__dirname, 'src'),
@@ -77,8 +76,5 @@ module.exports = {
       minify: true,
     }),
     new MiniCssExtractPlugin({filename: 'bundle.[hash].css'}),
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-    }),
   ],
 }

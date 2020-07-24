@@ -1,3 +1,5 @@
+import get from 'lodash/get'
+
 export class Router {
   public routes: Record<string, string>
   constructor(routes: Record<string, string>) {
@@ -17,11 +19,11 @@ export class Router {
   }
 
   get activeRoute(): string {
-    const page = this.routes[this.location]
+    const page = get(this.routes, this.location)
     return page || this.routes.dashboard
   }
 
-  navigateToMain(): void {
-    window.location.hash = ''
+  navigate(path = ''): void {
+    window.location.hash = path
   }
 }

@@ -1,7 +1,9 @@
+import map from 'lodash/map'
+
 import {app} from '../index'
 import {Router} from './Router'
-import {StoreManager} from './StoreManager'
-import {TState} from './store'
+import {StoreManager} from './store/StoreManager'
+import {TState} from './store/types'
 
 
 export abstract class Wp extends HTMLElement {
@@ -21,10 +23,10 @@ export abstract class Wp extends HTMLElement {
   get observedProps(): Array<string> {
     const observed = (this.constructor as typeof Wp).observedAttributes
     if (!observed) return []
-    return observed.map((item: string) => {
+    return map(observed, (item: string) => {
       const propArr = item.split('-')
       if (propArr.length < 2) return item
-      return propArr.map((prop, i) => i > 0
+      return map(propArr, (prop, i) => i > 0
         ? `${prop[0].toUpperCase()}${prop.slice(1)}`
         : prop
       ).join('')
@@ -40,9 +42,8 @@ export abstract class Wp extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.observedProps.forEach((prop: keyof TState) => {
-      this.store.subscribe(prop, this);
-    })
+    this.observedProps.forEach((prop: keyof TState) =>
+      this.store.subscribe(prop, this))
     this.render()
   }
 }

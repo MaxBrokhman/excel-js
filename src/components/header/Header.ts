@@ -1,5 +1,7 @@
+import set from 'lodash/set'
+
 import {Wp} from '../../core/Wp'
-import {setTableName} from '../../core/action'
+import {setTableName} from '../../core/store/actions'
 import {IEvent} from '../table/types'
 import {localStorageManager} from '../../core/LocalStorageManager'
 
@@ -20,9 +22,11 @@ class HeaderSection extends Wp {
   }
 
   set tableName(name: string) {
-    if (this.input) {
-      this.input.value = name
-    }
+    set(
+        this.input,
+        'value',
+        name,
+    )
   }
 
   connectedCallback() {
@@ -30,18 +34,17 @@ class HeaderSection extends Wp {
     this.input = this.querySelector('.input')
     this.deleteBtn = this.querySelector('.delete-btn')
     this.exitBtn = this.querySelector('.exit-btn')
-    this.input.oninput = (evt: IEvent) => {
+    this.input.oninput = (evt: IEvent) =>
       this.store.dispatch(setTableName(evt.target.value))
-    }
     this.deleteBtn.onclick = () => {
       if (confirm(
           'Are you sure you want to delete this table? There is no way back!'
       )) {
         localStorageManager.removeCurrentTable()
-        this.router.navigateToMain()
+        this.router.navigate()
       }
     }
-    this.exitBtn.onclick = () => this.router.navigateToMain()
+    this.exitBtn.onclick = () => this.router.navigate()
   }
 
   get html(): string {

@@ -1,7 +1,10 @@
+import get from 'lodash/get'
+
 import {localStorageManager} from './LocalStorageManager'
-import {initialState, TState} from './store'
-import {StoreManager} from './StoreManager'
+import {initialState} from './store/store'
+import {StoreManager} from './store/StoreManager'
 import {Router} from './Router'
+import {TState} from './store/types'
 
 export class App {
   public router: Router
@@ -33,7 +36,7 @@ export class App {
   }
 
   initStore(): StoreManager {
-    const tableId = this.router.param && this.router.param.length
+    const tableId = get(this.router, ['param', 'length'])
       ? this.router.param
       : `${new Date().getTime()}`
 

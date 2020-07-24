@@ -1,4 +1,6 @@
 import set from 'lodash/set'
+import keys from 'lodash/keys'
+import get from 'lodash/get'
 
 import {
   ID_SEPARATOR,
@@ -18,7 +20,7 @@ import {
   setCurrentCell,
   setSelectedCells,
   resetCurrentStyles,
-} from '../../core/action'
+} from '../../core/store/actions'
 import {
   parseCellId,
   incrementLetter,
@@ -30,11 +32,16 @@ import {
 import {IEvent} from './types'
 import {TableResizer} from '../../core/TableResizer/TableResizer'
 import {defaultStyles} from './config'
-import {TCurrentText} from '../../core/store'
+import {TCurrentText} from '../../core/store/types'
 
 export class TableSection extends Wp {
   static get observedAttributes(): Array<string> {
-    return ['col-state', 'row-state', 'current-text']
+    return [
+      'col-state',
+      'row-state',
+      'current-text',
+      'current-styles',
+    ]
   }
 
   private tableResizer: TableResizer
@@ -59,7 +66,7 @@ export class TableSection extends Wp {
 
   set currentStyles(styles: Record<string, string>) {
     this.store.state.selectedCells.forEach((cell) =>
-      Object.keys(styles).forEach((key) => set(cell.style, key, styles[key])))
+      keys(styles).forEach((key) => set(cell.style, key, styles[key])))
   }
 
   select(element: HTMLElement): void {
@@ -72,7 +79,7 @@ export class TableSection extends Wp {
     element.focus()
     const storedContent = this.store.state.dataState[element.dataset.id]
     this.store.dispatch(
-        setCurrentText(storedContent ? storedContent.value : '')
+        setCurrentText(get(storedContent, 'value', ''))
     )
   }
 

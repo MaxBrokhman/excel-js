@@ -1,5 +1,6 @@
-import {TAction} from './StoreManager';
-import {parseValue} from '../utils/parseValue';
+import {TAction} from './StoreManager'
+import {parseValue} from '../../utils/parseValue'
+import {defaultStyles} from '../../components/table/config'
 
 export const setCurrentCell = (cell: HTMLElement): TAction => ({
   type: 'SET_CURRENT_CELL',
@@ -36,6 +37,7 @@ export const updateRowState = (data: Record<string, string>): TAction => ({
 
 export const resetCurrentStyles = (): TAction => ({
   type: 'RESET_CURRENT_STYLES',
+  payload: defaultStyles,
 })
 
 export const updateContent = (id: string, value: string): TAction => ({

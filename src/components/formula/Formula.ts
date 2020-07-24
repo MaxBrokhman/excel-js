@@ -1,7 +1,7 @@
 import {Wp} from '../../core/Wp'
-import {setCurrentText, updateContent} from '../../core/action'
+import {setCurrentText, updateContent} from '../../core/store/actions'
 import {IEvent} from '../table/types'
-import {TCurrentText} from '../../core/store'
+import {TCurrentText} from '../../core/store/types'
 
 export class FormulaField extends Wp {
   private _currentText: TCurrentText
