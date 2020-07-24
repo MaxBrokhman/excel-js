@@ -1,14 +1,11 @@
 import set from 'lodash/set'
 import keys from 'lodash/keys'
 import get from 'lodash/get'
+import map from 'lodash/map'
 
 import {
-  ID_SEPARATOR,
-  MIN_CHAR_CODE,
-  MAX_CHAR_CODE,
   COL_PARENT_PROP_DYNAMIC,
   ROW_PARENT_PROP_DYNAMIC,
-  SELECTED_CELL_CLASSNAME,
 } from '../../core/TableResizer/config'
 import {Wp} from '../../core/Wp'
 import {
@@ -17,22 +14,18 @@ import {
   setCurrentText,
   updateContent,
   updateOpenDate,
-  setCurrentCell,
-  setSelectedCells,
-  resetCurrentStyles,
 } from '../../core/store/actions'
 import {
   parseCellId,
-  incrementLetter,
-  decrementLetter,
-  getRangeFromLetters,
-  getRangeFromNumbers,
   updateStyleProp,
 } from '../../core/TableResizer/utils'
 import {IEvent} from './types'
 import {TableResizer} from '../../core/TableResizer/TableResizer'
-import {defaultStyles} from './config'
+import {keyboardKeys, FIRST_CELL_ID} from './config'
 import {TCurrentText} from '../../core/store/types'
+import {TableSelection} from '../../core/TableSelection/TableSelection'
+import {findNextCell, getIdsRange} from '../../core/TableSelection/utils'
+import {renderTable} from './renderTable'
 
 export class TableSection extends Wp {
   static get observedAttributes(): Array<string> {
@@ -45,185 +38,94 @@ export class TableSection extends Wp {
   }
 
   private tableResizer: TableResizer
-  private readonly rowsCount: number = 15
-  private readonly idSeperator: string = ID_SEPARATOR
-  private readonly maxCharCode: number = MAX_CHAR_CODE
-  private readonly minCharCode: number = MIN_CHAR_CODE
   private _currentText: TCurrentText
+  private selection: TableSelection
   public current: HTMLElement = null
   constructor() {
     super()
     this.className = 'excel-table'
     this._currentText = {}
+    this.selection = new TableSelection(this.store)
   }
 
   get html(): string {
     return `
       <h2 class="visually-hidden">Excel table</h2>
-      ${this._renderTable()}
+      ${renderTable({
+    colState: this.store.state.colState,
+    dataState: this.store.state.dataState,
+    rowState: this.store.state.rowState,
+    styles: this.store.state.stylesState,
+  })}
     `
   }
 
   set currentStyles(styles: Record<string, string>) {
     this.store.state.selectedCells.forEach((cell) =>
-      keys(styles).forEach((key) => set(cell.style, key, styles[key])))
-  }
-
-  select(element: HTMLElement): void {
-    if (this.current === element) return
-    this.clear()
-    this.store.dispatch(setSelectedCells([element]))
-    this.current = element
-    this.setSelected(element)
-    this.store.dispatch(setCurrentCell(element))
-    element.focus()
-    const storedContent = this.store.state.dataState[element.dataset.id]
-    this.store.dispatch(
-        setCurrentText(get(storedContent, 'value', ''))
-    )
-  }
-
-  selectGroup(group: Array<HTMLElement>): void {
-    this.clear()
-    this.store.dispatch(setSelectedCells(group))
-    group.forEach((element) => this.setSelected(element))
-  }
-
-  private clear(): void {
-    this.store.state.selectedCells.forEach((element: HTMLElement) => {
-      element.classList && element.classList.remove(SELECTED_CELL_CLASSNAME)
-      element.textContent = this.store.state.currentText.parsed
-    })
-    this.store.dispatch(resetCurrentStyles())
-  }
-
-  private setSelected(element: Element): void {
-    element?.classList.add(SELECTED_CELL_CLASSNAME)
-  }
-
-  get colState(): Record<string, string> {
-    return JSON.parse(this.getAttribute('col-state'))
+      keys(styles).forEach((key) => set(
+          cell.style,
+          key,
+          styles[key],
+      )))
   }
 
   set colState(data: Record<string, string>) {
-    this.setAttribute('col-state', JSON.stringify(data))
-  }
-
-  get rowState(): Record<string, string> {
-    return JSON.parse(this.getAttribute('row-state'))
+    keys(data).forEach((key) =>
+      this.updateColumnWidth(key, data[key]))
   }
 
   set rowState(data: Record<string, string>) {
-    this.setAttribute('row-state', JSON.stringify(data))
+    keys(data).forEach((key) =>
+      this.updateColumnWidth(key, data[key]))
   }
 
   get currentText(): TCurrentText {
     return this._currentText
   }
 
-  set currentText(value: TCurrentText) {
-    if (value.value !== this._currentText.value) {
+  set currentText(newData: TCurrentText) {
+    if (newData.value !== this._currentText.value) {
       this.store.state.selectedCells.forEach((cell: HTMLElement) => {
-        cell.textContent = value.value
+        cell.textContent = newData.value
       })
-      this._currentText = value
-    }
-  }
-
-  attributeChangedCallback(
-      name: string,
-      oldValue: string,
-      newValue: string,
-  ): void {
-    if (oldValue !== newValue) {
-      switch (name) {
-        case 'col-state':
-          Object.keys(this.colState).forEach((key) =>
-            this.updateColumnWidth(key, this.colState[key]))
-          break
-        case 'row-state':
-          Object.keys(this.rowState).forEach((key) =>
-            this.updateColumnWidth(key, this.rowState[key]))
-          break
-      }
+      this._currentText = newData
     }
   }
 
   connectedCallback(): void {
     super.connectedCallback()
-    const firstCell: HTMLElement = this.querySelector('[data-id="1:A"]')
-    this.select(firstCell)
-    this.oninput = () => {
-      const content = this.store.state.currentCell.textContent
-      this.store.dispatch(setCurrentText(content))
-      this.store.dispatch(
-          updateContent(this.store.state.currentCell.dataset.id, content)
-      )
-    }
+    const firstCell: HTMLElement = this.querySelector(FIRST_CELL_ID)
+    this.selection.select(firstCell)
+    this.oninput = () => this.inputHandler()
     this.onkeydown = (evt: KeyboardEvent) => this.keydownHandler(evt)
     this.onclick = (evt: IEvent) => this.tableClickHandler(evt)
     this.onmousedown = (evt: IEvent) => this.mousedownHandler(evt)
     this.store.dispatch(updateOpenDate())
   }
 
-  keydownHandler(evt: KeyboardEvent): void {
-    const keys = [
-      'Enter',
-      'Tab',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowDown',
-      'ArrowUp',
-    ]
+  inputHandler(): void {
+    const content = this.store.state.currentCell.textContent
+    this.store.dispatch(setCurrentText(content))
+    this.store.dispatch(
+        updateContent(
+            get(this.store.state.currentCell, ['dataset', 'id']),
+            content,
+        )
+    )
+  }
 
-    if (keys.includes(evt.key) && !evt.shiftKey) {
+  keydownHandler(evt: KeyboardEvent): void {
+    if (keyboardKeys.includes(evt.key) && !evt.shiftKey) {
       evt.preventDefault()
-      const newCellId = this._findNextCellId(evt.key)
+      const newCellId = findNextCell(
+          evt.key,
+          get(this.store.state.currentCell, ['dataset', 'id']),
+      )
       const nextCell: HTMLElement = this.querySelector(
           `[data-id="${newCellId}"]`
       )
-      if (nextCell) {
-        this.select(nextCell)
-      }
+      nextCell && this.selection.select(nextCell)
     }
-  }
-
-  _findNextCellId(key: string): string {
-    const current = parseCellId(this.store.state.currentCell?.dataset?.id)
-    switch (key) {
-      case 'Enter':
-      case 'ArrowDown':
-        return `${Number(current[0]) + 1}${ID_SEPARATOR}${current[1]}`
-      case 'Tab':
-      case 'ArrowRight':
-        return `${current[0]}${ID_SEPARATOR}${incrementLetter(current[1])}`
-      case 'ArrowLeft':
-        return `${current[0]}${ID_SEPARATOR}${decrementLetter(current[1])}`
-      case 'ArrowUp':
-        return `${Number(current[0]) - 1}${ID_SEPARATOR}${current[1]}`
-    }
-  }
-
-  private _renderCell(col: string, headerContent: number): string {
-    const td = document.createElement('td')
-    td.className = 'cell'
-    td.dataset.index = `${headerContent}`
-    td.dataset.col = col
-    const cellId = `${headerContent}${this.idSeperator}${col}`
-    td.dataset.id = cellId
-    td.setAttribute('contenteditable', '')
-    const storedStyles = this.store.state.stylesState[cellId] || defaultStyles
-    Object.keys(storedStyles).forEach((key) => {
-      set(td.style, key, storedStyles[key])
-    })
-    if (this.store.state.colState[col]) {
-      td.style.width = this.store.state.colState[col]
-    }
-    const storedContent = this.store.state.dataState[cellId]
-    td.textContent = storedContent
-      ? storedContent.parsed
-      : ''
-    return td.outerHTML
   }
 
   tableClickHandler(evt: IEvent): void {
@@ -231,20 +133,12 @@ export class TableSection extends Wp {
       if (evt.shiftKey) {
         const target = parseCellId(evt.target.dataset.id)
         const current = parseCellId(this.store.state.currentCell?.dataset?.id)
-        const rowsRange = getRangeFromLetters(current[1], target[1])
-        const colsRange = getRangeFromNumbers(
-            Number(current[0]),
-            Number(target[0]),
-        )
-        const ids = colsRange.reduce((acc, col) => {
-          rowsRange.forEach((row) => acc.push(`${col}${ID_SEPARATOR}${row}`))
-          return acc
-        }, [])
-        const selectedCells: Array<HTMLElement> = ids.map((id) =>
+        const ids = getIdsRange(current, target)
+        const selectedCells: Array<HTMLElement> = map(ids, (id) =>
           this.querySelector(`[data-id="${id}"]`))
-        this.selectGroup(selectedCells)
+        this.selection.selectGroup(selectedCells)
       } else {
-        this.select(evt.target)
+        this.selection.select(evt.target)
       }
     }
   }
@@ -284,79 +178,6 @@ export class TableSection extends Wp {
       prop: ROW_PARENT_PROP_DYNAMIC,
       value,
     })
-  }
-
-  private _renderRow(headerContent: number, colsCount: number): string {
-    const cells = []
-    for (let i = 0; i < colsCount; i++) {
-      cells.push(this._renderCell(
-          String.fromCharCode(this.minCharCode + i),
-          headerContent
-      ))
-    }
-    return `
-      <tr 
-        class="row" 
-        data-index="${headerContent}"
-        ${this.store.state.rowState[headerContent]
-          ? `style="height: ${this.store.state.rowState[headerContent]}"`
-          : ''}
-      >
-        <td 
-          class="row-info table-header-cell"
-          data-index="${headerContent}"
-        >
-          <div class="row-resize" data-resize="row"></div>
-          ${headerContent}
-        </td>
-        ${cells.join('')}
-      </tr>
-    `
-  }
-
-  private _renderHeaderCell(headerCell: string): string {
-    return `
-      <th 
-        class="row-data table-header-cell" 
-        data-type="resizable" 
-        data-col="${headerCell}"
-        ${this.store.state.colState[headerCell]
-            ? `style="width: ${this.store.state.colState[headerCell]};"`
-            : '' }
-      >
-        ${headerCell}
-        <div class="col-resize" data-resize="col"></div>
-      </th>
-    `
-  }
-
-  private _renderTable(): string {
-    const colsCount = this.maxCharCode - this.minCharCode
-    const rows = []
-    const headerCells = []
-    for (let i = 0; i <= colsCount; i++) {
-      headerCells.push(
-          this._renderHeaderCell(
-              String.fromCharCode(this.minCharCode + i),
-          )
-      )
-    }
-    for (let i = 0; i < this.rowsCount; i++) {
-      rows.push(this._renderRow(i + 1, colsCount))
-    }
-    return `
-      <table class="table">
-        <thead>
-          <tr class="row">
-            <th class="row-info table-header-cell"></th>
-            ${headerCells.join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.join('')}
-        </tbody>
-      </table>
-    `
   }
 }
 

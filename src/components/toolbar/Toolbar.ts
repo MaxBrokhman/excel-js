@@ -1,11 +1,13 @@
 import map from 'lodash/map'
 import keys from 'lodash/keys'
 import get from 'lodash/get'
+import entries from 'lodash/entries'
 
 import {Wp} from '../../core/Wp'
 import {updateCurrentStyles} from '../../core/store/actions'
 import {buttons} from './config'
 import {defaultStyles} from '../table/config'
+import {TObj} from '../../core/store/types'
 
 export type TButton = {
   icon: string,
@@ -31,8 +33,20 @@ class ToolbarSection extends Wp {
       const toolbarButton = this.createButton(button)
       toolbarButton.dataset.data = JSON.stringify(button.data)
       toolbarButton.onclick = () => {
-        this.store.dispatch(updateCurrentStyles(button.data))
-        this.toggleActive(toolbarButton)
+        if (toolbarButton.classList.contains('active')) {
+          const newStyles = entries(button.data)
+              .reduce((acc: Record<string, string>, prop) => {
+                if (defaultStyles[prop[0]]) {
+                  acc[prop[0]] = defaultStyles[prop[0]]
+                } else {
+                  acc[prop[0]] = ''
+                }
+                return acc
+              }, {})
+
+          return this.store.dispatch(updateCurrentStyles(newStyles))
+        }
+        return this.store.dispatch(updateCurrentStyles(button.data))
       }
       this.appendChild(toolbarButton)
       return toolbarButton
@@ -54,33 +68,27 @@ class ToolbarSection extends Wp {
   }
 
   set currentCell(cell: HTMLElement) {
-    this.updateButtons(cell)
+    this.updateButtons(get(
+        this.store.state.stylesState,
+        get(cell, ['dataset', 'id']),
+        defaultStyles,
+    ))
   }
 
-  set currentStyles(value: Record<string, string>) {
-    this.updateButtons(this.store.state.currentCell)
+  set currentStyles(value: TObj) {
+    this.updateButtons(value)
   }
 
-  private toggleActive(elem: HTMLElement): void {
-    elem.classList.contains('active')
-      ? elem.classList.remove('active')
-      : elem.classList.add('active')
-  }
-
-  private updateButtons(cell: HTMLElement): void {
+  private updateButtons(newStyles: TObj): void {
     this.buttons.forEach((btn) => btn.classList.remove('active'))
-    const id = get(cell, ['dataset', 'id'])
-    if (id) {
-      const styles = get(this.store.state.stylesState, id, defaultStyles)
-      keys(styles).forEach((style) => {
-        const btn = this.buttons.find((btn) => {
-          const btnData = JSON.parse(btn.dataset.data)
-          return get(btnData, style)
-            && get(btnData, style) === get(styles, style)
-        })
-        btn && btn.classList.add('active')
+    keys(newStyles).forEach((style) => {
+      const btn = this.buttons.find((btn) => {
+        const btnData = JSON.parse(btn.dataset.data)
+        return get(btnData, style)
+          && get(btnData, style) === get(newStyles, style)
       })
-    }
+      btn && btn.classList.add('active')
+    })
   }
 }
 
